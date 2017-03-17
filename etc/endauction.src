@@ -1,0 +1,75 @@
+source <?=$INDEX?>_<?=$SHARD?> {
+  type = mysql  
+  sql_host = <?=$SQLHOST?><?=$EOL?>
+  sql_port = <?=$SQLPORT?><?=$EOL?>
+  sql_user = <?=$SQLUSER?><?=$EOL?>
+  sql_pass = <?=$SQLPASS?><?=$EOL?>
+  sql_db = <?=$SQLDB?><?=$EOL?>
+  
+  sql_query_pre = SET NAMES utf8  
+  sql_query_pre = SET SESSION query_cache_type=OFF
+  
+  sql_query_range = SELECT MIN(pid),MAX(pid) FROM <?=$TABLE?> WHERE 1=1
+  sql_range_step = 20000
+  sql_query = SELECT * FROM <?=$TABLE?> WHERE pid>=$start AND pid<=$end
+  
+  sql_attr_uint = pid
+  sql_attr_uint = userId
+  sql_attr_uint = auctionArea
+  sql_attr_uint = specialArea
+  sql_attr_uint = quality
+  sql_attr_uint = hasImg
+  sql_attr_uint = pubDate
+  sql_attr_uint = pubDate2
+  sql_attr_uint = preStartTime
+  sql_attr_uint = beginTime
+  sql_attr_uint = endTime
+  sql_attr_uint = isCreateTrade
+  sql_attr_uint = itemStatus
+  sql_attr_uint = isdeleted
+  sql_attr_uint = addTime
+  sql_attr_uint = viewedNum
+  sql_attr_uint = bidNum
+  sql_attr_uint = rank
+  sql_attr_uint = paper 
+  sql_attr_uint = printType 
+  sql_attr_uint = binding 
+  sql_attr_uint = sort 
+  sql_attr_uint = material 
+  sql_attr_uint = form
+  sql_attr_uint = years2
+  sql_attr_uint = class
+
+  sql_attr_bigint = catId
+  sql_attr_bigint = catId1
+  sql_attr_bigint = catId2
+  sql_attr_bigint = catId3
+  sql_attr_bigint = catId4
+  sql_attr_bigint = vcatId
+  sql_attr_bigint = vcatId1
+  sql_attr_bigint = vcatId2
+  sql_attr_bigint = vcatId3
+  sql_attr_bigint = vcatId4
+  sql_attr_bigint = iauthor
+  sql_attr_bigint = ipress
+  sql_attr_bigint = area
+  sql_attr_bigint = area1
+  sql_attr_bigint = area2
+
+  sql_attr_multi  = bigint catId1g from field
+  sql_attr_float = beginPrice
+  sql_attr_float = minAddPrice
+  sql_attr_float = maxPrice
+
+  sql_attr_string = itemName
+  sql_attr_string = nickname
+  sql_attr_string = author 
+  sql_attr_string = author2
+  sql_attr_string = press
+  sql_attr_string = press2
+  sql_attr_string = img
+  sql_attr_string = years
+
+  sql_field_string = isbn
+  sql_attr_json = params
+}

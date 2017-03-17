@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="http://xiaoxi.kongfz.com/css/im/main.css" />
+<script src="http://xiaoxi.kongfz.com/js/jquery/jquery.min.js"></script>
+<script src="http://xiaoxi.kongfz.com/js/webim_core.js"></script>
+<title>孔夫子图书网－全球最大的中文旧书网站－搜索首页</title>
+<style>
+body{ padding:0; margin:0; text-align:center; font-size:12px;}
+img{ border:0;}
+ul{ margin:0; padding:0;}
+ul li{ list-style:none;}
+a.red:link{ color:#da0000;}
+a.red:hover{text-decoration:underline;}
+a.red:visited{ color:#da0000}
+a:link{color:#00097b;text-decoration:none;}
+a:visited{color:#00097b;text-decoration:none;}
+a:hover{color:#da0000;text-decoration:underline;}
+#header{ background:url(images/bg_search_index01.gif); height:27px;  font-size:12px; margin:0 auto; width:950px;}
+#header .left{ float:left;line-height:27px;}
+#header  a{color:#686868; text-decoration:none;}
+#header .right{ float:right; padding-top:5px; line-height:100%;}
+#search{ background:url(images/bg_search_index02.gif); width:950px; margin:0 auto; height:111px;}
+#search #tab{ width:500px; margin:0 auto;}
+#search #tab ul{ margin-left:40px;}
+#search #tab ul li{ float:left; width:94px; margin-right:24px; line-height:35px; height:41px; font-size:14px;}
+#search #tab .current{ background:url(images/tab_search_index.gif); width:94px; height:41px; font-weight:bold;}
+.clear{ clear:both; line-height:0; font-size:0;}
+#search .searchInput{ font-size:16px;}
+#hot{ width:660px; margin:0 auto; margin-top:40px; }
+#hot h4{ font-size:12px;}
+#hot .left{ width:320px; float:left; margin-right:20px; text-align:left;}
+#hot .right{ float:right; width:320px;text-align:left;}
+#hot a{ color:#4e4e4e; text-decoration:none; line-height:200%;}
+#contact a,#footer a{ font-size:12px; color:#000; line-height:200%;}
+#footer{ font-size:12px; line-height:200%; }
+#contact{ border-top:1px solid #d7d7d7; width:950px; margin:40px auto 0 auto; padding-top:8px;}
+.keywords_list{text-align:left;}
+.keywords_list a{margin:5px;}
+</style>
+<script type="text/javascript" language="javascript" src="js/lib_common.js"></script>
+<script type="text/javascript" language="javascript" src="top200.js"></script>
+<script type="text/javascript" language="javascript" src="http://res.kongfz.com/js/core/base.js"></script>
+<script type="text/javascript">
+var forms = {"shop":"frmSearchShop", "auction":"frmSearchAuction", "forum":"frmSearchForum"};
+var names = ["shopPanelConent", "auctionPanelConent", "forumPanelConent"];
+var currentName = "shop";
+function switchPanel(panel, name)
+{
+    currentName = name;
+    var lis = $search("panels").getElementsByTagName("LI");
+    for(var i=0; i < lis.length; i++){
+        lis[i].className= (lis[i] != panel.parentNode ? "" : "current");
+    }
+    for(var i=0; i < names.length; i++){
+        $search(names[i]).style.display="none";
+    }
+    $search(name+"PanelConent").style.display="block";
+}
+
+function searchSubmit()
+{
+    clearSearchHint("query");
+    $search(forms[currentName]).submit();
+}
+
+
+function changeAuctionTarget(value){
+    $search("frmSearchAuction").action = auctionLinks[value];
+}
+
+
+function showTop200(){
+    $search("count_date").innerHTML = count_date;
+    var Container = $search("keywords_list");
+    var count = COUNT_DATA.length;
+    count = (count > 30 ? 30 : count);
+    var li;
+    for(var i=0; i < count; i++){
+        if(i % 3 == 0){
+            li = document.createElement("LI");
+            Container.appendChild(li);
+        }
+        li.appendChild(newTopItem(i+1,COUNT_DATA[i]));
+    }
+
+    function newTopItem(pos,text){
+        var a = document.createElement("A");
+        a.href="book.jsp?query=" + text[0];
+        a.innerHTML = text[1];
+        a.target="_blank";
+        return a;
+    }
+}
+
+function changeQueryValue(value)
+{
+    resetSearchHint("query", value);
+    $search('content').value=value;
+}
+
+function initFormFields()
+{
+    changeQueryValue("");
+    initSearchHintMessage("query");
+    $search("sale").value="0";
+    $search("searchProperty").value="history";
+    $search("category").value="";
+}
+</script>
+
+
+</head>
+<body>
+<script>
+document.write('<s'+'cript src="http://user.kongfz.com/interface/server_interface/comm_header.php?site=search&'+Math.random()+'"></'+'script>');
+</script>
+<style>
+.kfz-header-top-nav-right .kfz-star-div{margin-top:0px;*margin-top:2px; float:left;}
+</style>
+<a href="http://www.kongfz.com/" target="_blank"><img src="images/logo08_com.jpg" alt="孔夫子图书网首页" style="margin-top:20px; margin-bottom:20px;" /></a>
+<!--搜索开始-->
+<div id="search">
+  <div id="tab">
+    <ul id="panels">
+      <li class="current"><a href="javascript:void(0);" onclick="switchPanel(this, 'shop')">书店区</a></li>
+      <li><a href="javascript:void(0);" onclick="switchPanel(this, 'auction')">拍卖区</a></li>
+      <!--<li><a href="javascript:void(0);" onclick="switchPanel(this, 'forum')">社区</a></li>-->
+    </ul>
+  </div>
+  <div class="clear"></div>
+  <div class="searchInput">
+    <table align="center">
+      <tr>
+        <td><img src="images/icon_search_index.gif" alt="搜索" align="absmiddle" /></td>
+        <td><span id="shopPanelConent" style="display:block">
+<form id="frmSearchShop" name="frmSearchShop" method="get" action="book.jsp" style="margin:0px;">
+<input type="text" id="query" name="query" onchange="changeQueryValue(this.value)" style="width:400px; font-size:20px;" />
+<select name="sale" id="sale" style="font-size:20px;line-height:30px;" >
+<option value="0" selected="selected">未售</option>
+<option value="1">已售</option>
+<option value="2">全部</option>
+</select>
+<input type="hidden" id="category" name="category" value="0" />
+</form>
+          </span> <span id="auctionPanelConent" style="display:none">
+<form id="frmSearchAuction" name="frmSearchAuction" method="get" action="auction.jsp" style="margin:0px;">
+<input type="text" id="query" name="query" onchange="changeQueryValue(this.value)" style="width:339px; font-size:20px;" />
+<select id="searchProperty" name="searchProperty" onchange="changeAuctionTarget(this.value)" style="font-size:20px;line-height:30px;">
+<option value="current">三天内拍卖</option>
+<option value="history" selected="selected">历史拍卖</option>
+</select>
+<input type="hidden" id="content" name="content" />
+<input type="hidden" name="act" value="search"  />
+</form>
+          </span> <span id="forumPanelConent" style="display:none">
+<form id="frmSearchForum" name="frmSearchForum" method="get" action="forum.jsp" style="margin:0px;">
+<input type="text" id="query" name="query" onchange="changeQueryValue(this.value)" style="width:360px; font-size:20px;" />
+<select id="category" name="category" style="font-size:20px;line-height:30px;">
+<option value="">全部</option>
+<option value="26">网站公告</option>
+<option value="9">淘书指南</option>
+<option value="10">收藏学堂</option>
+<option value="6">文史大话</option>
+<option value="7">夫子书话</option>
+<option value="13">自由交易区</option>
+<option value="11">分类信息</option>
+<option value="14">灌水区</option>
+<option value="18">意见建议</option>
+<option value="9999">书界新闻</option>
+<option value="9998">市场动态</option>
+</select>
+</form>
+          </span> </td>
+        <td><img onclick="searchSubmit()" src="images/bt_search_index.gif" style="padding-bottom:0px;*padding-bottom:0;_padding-bottom:0; cursor:pointer;" align="absmiddle" title="搜索" /> <a href="book_adv.html" target="_blank">高级搜索</a> <a href="http://search.kongfz.com/index_p.html" target="_blank" class="red">精确搜索</a></td>
+      </tr>
+      
+    </table>
+  </div>
+  <!--</form>-->
+</div>
+<script>initFormFields();</script>
+<!--搜索结束-->
+<div id="hot">
+  <div class="left">
+    <h4>分类搜索</h4>
+<ul class="keywords_list">
+	<li>·<a href="book.jsp?category=8000000000000000" target="_blank">线装古旧书</a>
+			<a href="book.jsp?category=9000000000000000" target="_blank">民国旧书</a>
+			<a href="book.jsp?category=21000000000000000" target="_blank">名人墨迹</a>
+	</li>
+	<li>· <a href="book.jsp?category=37000000000000000" target="_blank">名人字画</a>
+			<a href="book.jsp?category=10000000000000000" target="_blank">期刊</a>
+			<a href="book.jsp?category=41000000000000000" target="_blank">报纸</a>
+			<a href="book.jsp?category=6000000000000000" target="_blank">外文旧书</a>
+	</li>
+	<li>· 
+			<a href="book.jsp?category=32000000000000000" target="_blank">二手教材</a>
+			<a href="book.jsp?category=43000000000000000" target="_blank">小说</a>
+			<a href="book.jsp?category=1000000000000000" target="_blank">文学</a>
+			<a href="book.jsp?category=3000000000000000" target="_blank">历史</a>
+			<a href="book.jsp?category=23000000000000000" target="_blank">地理</a>
+	</li>
+	<li>· <a href="book.jsp?category=5000000000000000" target="_blank">法律</a>
+			<a href="book.jsp?category=24000000000000000" target="_blank">军事</a>
+			<a href="book.jsp?category=14000000000000000" target="_blank">经济</a>
+			<a href="book.jsp?category=25000000000000000" target="_blank">管理</a>
+			<a href="book.jsp?category=4000000000000000" target="_blank">艺术</a>
+	</li>
+	<li>· <a href="book.jsp?category=26000000000000000" target="_blank">生活</a>
+			<a href="book.jsp?category=28000000000000000" target="_blank">教育</a>
+			<a href="book.jsp?category=13000000000000000" target="_blank">语言文字</a>
+			<a href="book.jsp?category=44000000000000000" target="_blank">哲学心理</a>
+			<a href="book.jsp?category=29000000000000000" target="_blank">宗教</a>
+	</li>
+	<li>· <a href="book.jsp?category=18000000000000000" target="_blank">政治</a>
+			<a href="book.jsp?category=19000000000000000" target="_blank">体育</a>
+			<a href="book.jsp?category=11000000000000000" target="_blank">理科工程技术</a>
+			<a href="book.jsp?category=15000000000000000" target="_blank">自然科学</a>
+	</li>
+	<li>· <a href="book.jsp?category=17000000000000000" target="_blank">医药卫生</a>
+			<a href="book.jsp?category=31000000000000000" target="_blank">计算机网络</a>
+			<a href="book.jsp?category=16000000000000000" target="_blank">工具书</a>
+	</li>
+	<li>· <a href="book.jsp?category=12000000000000000" target="_blank">国学古籍收藏</a>
+			<a href="book.jsp?category=34000000000000000" target="_blank">红色文献</a>
+			<a href="book.jsp?category=55000000000000000" target="_blank">地图类</a>
+			<a href="book.jsp?category=35000000000000000" target="_blank">连环画</a>
+	</li>
+	<li>· <a href="book.jsp?category=56000000000000000" target="_blank">版画宣传画</a>
+			<a href="book.jsp?category=36000000000000000" target="_blank">邮票税票</a>
+			<a href="book.jsp?category=46000000000000000" target="_blank">钱币</a>
+			<a href="book.jsp?category=57000000000000000" target="_blank">碑帖印谱</a>
+	</li>
+	<li>· <a href="book.jsp?category=38000000000000000" target="_blank">照片影像</a>
+			<a href="book.jsp?category=58000000000000000" target="_blank">古玩杂项</a>
+			<a href="book.jsp?category=20000000000000000" target="_blank">综合其他</a>
+	</li>
+</ul>
+  </div>
+  <div class="right keywords_list">
+    <h4>每周热门搜索（<label id="count_date"></label>统计）</h4>
+    <div id="keywords_list"></div>
+    <script language="javascript">showTop200();</script>
+    <div style="padding-left:135px;"><A href="top200.html" style="color:#0000FF" target="_blank">更多>>></a></div>
+  </div>
+</div>
+<div class="clear"></div>
+<!--footer开始-->
+<div id="contact"> <a href="http://www.kongfz.com/help/aboutus.php" class="menufoot" target="_blank">关于孔夫子</a> - <a href="http://help.kongfz.com/" class="menufoot" target="_blank">网站帮助</a> - <a href="http://www.kongfz.com/help/guanggao.php" class="menufoot" target="_blank">广告业务</a> - <a href="http://www.kongfz.com/help/zhaopin.php" class="menufoot" target="_blank">诚聘英才</a> - <a href="http://www.kongfz.com/help/lianxi.html" class="menufoot" target="_blank">联系我们</a> - <a href="http://www.kongfz.com/help/copyright.php" class="menufoot" target="_blank">版权隐私</a> - <a href="http://www.kongfz.com/community/links.php" class="menufoot" target="_blank">友情链接</a> - <a href="http://shop.kongfz.com/advice.php?act=add" class="menufoot" target="_blank"><font color='#bb0000'>意见建议</font></a> </div>
+<div id="footer"> 版权所有©2002-2013 孔夫子图书网（<a href="http://www.kongfz.com" target="_blank">www.kongfz.com</a>）<br />
+  Copyright © All rights reserved 使用本网站即表示接受本<a href="http://www.kongfz.com/help/guize/guize_4.html" target="_blank" class="blue">网站服务协议</a><br />
+</div>
+<!--footer结束-->
+<script type="text/javascript" language="javascript" src="js/query_suggest_agent.js"></script>
+<script>
+var agent = new QuerySuggestAgent("query");
+agent.setFontSize(20);
+agent.setPosOffset(0);
+agent.start();
+</script>
+</body>
+</html>

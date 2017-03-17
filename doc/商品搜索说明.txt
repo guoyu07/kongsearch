@@ -1,0 +1,184 @@
+商品搜索说明
+
+【涉及数据库】
+  shop
+  tag
+  product_a1
+  product_a2
+  product_b1
+  product_b2
+
+【商品索引中字段说明】
+特别注意：字段指的是用于索引、检索的列。*****
+商品索引的字段如下：
+  字段            说明
+  _itemName       商品名称    经过分词。
+  _author         作者        经过分词。
+  _press          出版社      经过分词。
+  isbn            ISBN
+  _tag            标签        经过分词。
+  itemDesc        描述        经过分词。
+  _nickname       用户昵称    经过分词。
+  _shopName       书店名称    经过分词。
+  _catId          分类ID      用于通过匹配的方式来实现过滤功能。
+  _catId1         一级分类ID
+  _catId2         二级分类ID
+  _catId3         三级分类ID
+  _catId4         四级分类ID
+  _vcatId         虚拟分类ID  
+  _vcatId1        一级虚拟分类ID
+  _vcatId2        二级虚拟分类ID
+  _vcatId3        三级虚拟分类ID
+  _vcatId4        四级虚拟分类ID
+
+【商品索引中属性说明】
+特别注意：属性指的是用于分组、过滤、排序、展示的列。*****
+  属性名          数据类型      说明
+  pid             uint          内部使用的一个自增ID，用于建索引从数据库里取数据。
+  bizType         uint          业务类型，1: 书店，2: 书摊。
+  itemName        string        商品名称，用于搜索结果展示。
+  author          string        作者，用于搜索结果展示。
+  author2         string        进行了整理，用于聚类结果展示
+  iauthor         bigint        作者编码，用于聚类。
+  press           string        出版社，用于聚类结果展示
+  press2          string        进行了整理，用于聚类结果展示
+  ipress          bigint        出版社编码，用于聚类。
+  isbn            string        ISBN
+  tag             string        标签，bq项目需要用到。
+  catId           bigint        商品分类ID，以下是商品四级分类ID，用于聚类。
+  catId1          bigint
+  catId2          bigint
+  catId3          bigint
+  catId4          bigint
+  vcatId          bigint        商品虚拟分类ID，以下是商品四级虚拟分类ID，用于聚类。
+  vcatId1         bigint
+  vcatId2         bigint
+  vcatId3         bigint
+  vcatId4         bigint
+  catId1g         multi_64      用于一级分类 的聚类，已实现，但没启用。
+  imgUrl          string        图片URL
+  hasImg          uint          是否有图片，用于rank计算。
+  years           string        年代，用于搜索结果的展示。
+  years2          uint          年代的编号，用于按年代聚类。
+  pubDate         uint          出版时间，格式为YYYYMMDD，出版时间不详则用0表示，用于搜索结果按出版时间降序排列时不存在出版时间的图书排在最后。
+  pubDate2        uint          出版时间，格式为YYYYMMDD，出版时间不详则用29991231表示，用于搜索结果按出版时间升序排列时不存在出版时间的图书排在最后。
+                                注意：pubDate取值为0、pubDate2取值为29991231，在页面展示为空或不详。
+  number          uint          库存，number=0要显示已订完。
+  quality         uint          品相
+  discount        uint          折扣
+  addTime         uint          上架时间
+  price           float         价格，原价乘以折扣之后的价格
+  
+  
+  userId          uint          用户ID
+  nickname        string        用户昵称
+  shopName        string        店铺名称
+  shopId          uint          书店/书摊ID
+  class           uint          书店/书摊等级
+  shopStatus      uint          书店/书摊状态，取值：0: new, 1: onSale, 2: pause, 3: close
+  area            bigint        商家所在地区编码。
+  area1           bigint        所在地区一级编码
+  area2           bigint        所在地区一级编码
+  
+  params          json          商品著录项数据，json格式。访问著录项：params.key ，比如 params.pageType，可以对著录项进行排序、过滤、分组、展示。
+  paper           uint          纸张，用于聚类
+  printType       uint          刻印方式，用于聚类
+  binding         uint          装帧，用于聚类
+  sort            uint          类别，用于聚类
+  material        uint          材质，用于聚类
+  form            uint          形式，用于聚类
+   
+  certifyStatus   uint          审核状态，取值：0: 'notCertified', 1: 'certified', 2: 'failed', 3: 'waitApproved', 4: 'frozen'
+  olReceiveType   uint          中介保护，取值：0: 'noSupport', 1: 'direct', 2: 'protected', 3: 'dAndP', 4: 'forcePro'
+  saleStatus      uint          销售状态，取值：0: 未售，1: 已售 
+  rank            uint          商品等级，用于相关度计算，按相关度排序。rank factors: hasImg class addTime 
+  trust           uint          可信度，用于审核
+  isdeleted       uint          商品是否删除，取值：0: 没有删除， 1: 已真正删除， 2: 只打上了删除标记，可恢复。
+
+【商品搜索中索引类型】
+  product               未售商品索引
+  product_sold          已售商品索引
+  product_all           全部商品索引
+  
+【过滤条件】
+  所有查询语句都必须设置下面几个过滤条件：
+  (1) isdeleted=0       未删除
+  (2) shopStatus=1      在售书店
+  (3) certifyStatus=1   审核通过
+  即 SELECT ... FROM .... WHERE .... isdeleted=0 AND shopStatus=1 AND certifyStatus=1 .... 
+  表示只返回未删除、书店在售、审核通过的商品。
+  
+
+【匹配说明】
+  精确搜索：            MATCH('@(_itemName, _author, _press, isbn) words')
+  模糊搜索：            MATCH('@(_author,_press,_itemname,isbn,_tag,itemdesc) "words"/0.5')   -- 精确搜索没有结果时就自动启用模糊搜索
+  在作者字段搜索：      MATCH('@_author words')
+  在出版社字段搜索：    MATCH('@_press words')
+  在卖家昵称字段搜索：  MATCH('@_nickname words')
+  在书店字段搜索：      MATCH('@_shopName words')
+  注意：以上words都需分词。
+  
+【排序说明】
+  新搜索排序按照下面的匹配情况来排序：（和老的搜索排序一样）
+　A. 书名中完全一样的 
+　B. 作者完全一样的
+　C. 书名中完全包含搜索词
+　D. 作者完全包含搜索词
+　E  书名部分包含关键词的
+ 
+  其中相同匹配的，比如A. 书名中完全一样的则依次按照下面的因素排：
+   1. 有无图片
+   2. 书店等级
+   3. 上书时间
+
+
+【查询语句说明】
+(1) 聚类
+  以作者聚类为例，聚类语句如下：
+  SELECT author2, groupby() as authorid, count(*) as num FROM product 
+  WHERE MATCH('@_catid1 "8000000000000000"') AND isdeleted=0 AND shopStatus=1 AND certifyStatus=1 
+  GROUP BY _iauthor 
+  ORDER BY num DESC 
+  LIMIT 0,9 
+  OPTION max_matches=5000, ranker=expr('1');
+  
+
+(2) 分类/虚拟分类浏览
+   按上书时间排序，不需要计算相关度，分类浏览语句示例：
+   SELECT * FROM product 
+   WHERE MATCH('@_catid1 "8000000000000000"') AND isdeleted=0 AND shopStatus=1 AND certifyStatus=1 
+   ORDER BY addTime DESC 
+   LIMIT 0,20
+   OPTION max_matches=5000, ranker=expr('1');
+   
+   虚拟分类浏览语句示例：
+   SELECT * FROM product 
+   WHERE MATCH('@_vcatid1 "1000000000000000"') AND isdeleted=0 AND shopStatus=1 AND certifyStatus=1 
+   ORDER BY addTime DESC 
+   OPTION max_matches=5000, ranker=expr('1');
+   
+   注意：分类浏览，需要根据分类来确定是走分类浏览，还是虚拟分类浏览。
+   
+(3) 基于关键词搜索（精确搜索）
+    SELECT * FROM product 
+    WHERE MATCH('@(_author,_press,_itemname,isbn) 中国') AND isdeleted=0 AND shopStatus=1 AND certifyStatus=1 
+    Limit 0,20 
+    OPTION max_matches=5000, 
+    ranker=expr('sum((4*lcs+2*(min_hit_pos==1)+15*exact_hit+(min_best_span_pos <= 4)+(word_count-lcs))*user_weight)*10000+rank'),
+    field_weights = (_itemName=300, _author=60, _press=50, isbn=30, _tag=20, itemDesc=1);
+                    
+(4) 模糊搜索ranker不使用 exact_hit,增加idf CEIL(400*sum_idf)
+    SELECT * FROM product WHERE MATCH('@@relaxed @(_author,_press,_itemname,isbn,_tag,itemdesc) "words"/0.5') AND isdeleted=0 AND certifystatus=1 AND shopstatus=1 LIMIT 0,5000 OPTION max_matches=5000, ranker=expr('sum((4*lcs+2*(min_hit_pos==1)+(min_best_span_pos <= 4)+(word_count-lcs)+CEIL(400*sum_idf))*user_weight)*10000+rank');
+
+(5) 多语句查询优化
+    把聚类语句和搜索语句同时发送到服务端进行查询，并且此时搜索语句和聚类语句中没有使用select表达式别名，比如 xxx as alias 则会启用多语句查询优化。
+
+      
+【索引更新说明】
+ （1）
+  重建索引时只对onSale状态的书店创建索引。
+  更新索引时不管什么状态的书店的书都建立索引。
+ （2）特别注意：*****
+  商品索引中属性更新：支持int, bigint, float, MVA类型属性的更新，string属性不能更新。
+  即在索引更新客户端中，string类型属性只能采用modify方法，不能采用update方法。
+  

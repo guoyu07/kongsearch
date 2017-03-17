@@ -1,0 +1,32 @@
+服务名：拍卖公司联盟搜索
+
+
+1.deploy kongsearch 
+
+2.mapping
+curl -XPUT '$host:$port/auctioncom_v1' -d '{"mappings":{"auctioncom":{"properties":{"itemid":{"type":"integer","index":"not_analyzed"},"comid":{"type":"integer","index":"not_analyzed"},"comname":{"type":"string","index":"not_analyzed"},"userid":{"type":"integer","index":"not_analyzed"},"cusid":{"type":"integer","index":"not_analyzed"},"itemname":{"type":"string","index":"not_analyzed"},"catid":{"type":"integer","index":"not_analyzed"},"author":{"type":"string","index":"not_analyzed"},"decade":{"type":"string","index":"not_analyzed"},"beginprice":{"type":"float","index":"not_analyzed"},"beginrefprice":{"type":"float","index":"not_analyzed"},"endrefprice":{"type":"float","index":"not_analyzed"},"bargainprice":{"type":"float","index":"not_analyzed"},"bigimg":{"type":"string","index":"not_analyzed"},"ishidden":{"type":"integer","index":"not_analyzed"},"viewednum":{"type":"integer","index":"not_analyzed"},"speid":{"type":"integer","index":"not_analyzed"},"isdeleted":{"type":"integer","index":"not_analyzed"},"_itemname":{"type":"string","analyzer":"ik"},"_decade":{"type":"string","analyzer":"ik"},"_comname":{"type":"string","analyzer":"ik"},"begintime2":{"type":"date","index":"not_analyzed"},"begintime":{"type":"date","index":"not_analyzed"},"comshortname":{"type":"string","index":"not_analyzed"}}}}}'
+
+3.alias
+curl -XPOST '$host:$port/_aliases' -d '{"actions":[{"add":{"alias":"auctioncom","index":"auctioncom_v1"}}]}'
+
+4.settings
+curl -XPUT '$host:$port/auctioncom_v1/_settings' -d '{"index" : {"translog" : {"flush_threshold_ops":"100000"}}}'
+curl -XPUT '$host:$port/auctioncom_v1/_settings' -d '{"index" : {"number_of_replicas" : 0}}'
+
+5.sh bin/indexupdateES.sh start auctioncom 
+
+6.sh bin/indexupdateES.sh start-rebuild auctioncom auctioncom
+
+7.deploy auctioncom clint side
+
+8.sh bin/gatherES.sh auctioncom
+
+9.curl -XPUT '$host:$port/auctioncom_v1/_settings' -d '{"index" : {"number_of_replicas" : 1}}'
+
+10.sh bin/indexupdateES.sh stop-rebuild auctioncom auctioncom
+
+11.sh bin/indexupdateES.sh redo auctioncom auctioncom
+
+12.deploy kfzsearch      
+
+

@@ -1,0 +1,7 @@
+服务名：可信任图书库搜索
+
+
+        1、创建索引
+		curl -XPUT '$host:$port/trustitem_v1?pretty'
+	2、创建映射
+		curl -XPUT '$host:$port/trustitem_v1/item/_mapping' -d '{"item":{"dynamic":false,"_all":{"store":true,"analyzer":"ik"},"properties":{"id":{"type":"integer"},"itemname":{"type":"string","include_in_all":false,"index":"not_analyzed"},"_itemname":{"type":"string","analyzer":"ik"},"author":{"type":"string","include_in_all":false,"index":"not_analyzed"},"_author":{"type":"string","analyzer":"ik"},"press":{"type":"string","include_in_all":false,"index":"not_analyzed"},"_press":{"type":"string","analyzer":"ik"},"isbn":{"type":"string","index":"not_analyzed"},"isdeleted":{"type":"short","include_in_all":false}}}}'

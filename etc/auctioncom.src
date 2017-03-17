@@ -1,0 +1,40 @@
+source <?=$INDEX?>_<?=$SHARD?> {
+  type = mysql  
+  sql_host = <?=$SQLHOST?><?=$EOL?>
+  sql_port = <?=$SQLPORT?><?=$EOL?>
+  sql_user = <?=$SQLUSER?><?=$EOL?>
+  sql_pass = <?=$SQLPASS?><?=$EOL?>
+  sql_db = <?=$SQLDB?><?=$EOL?>
+  
+  sql_query_pre = SET NAMES utf8  
+  sql_query_pre = SET SESSION query_cache_type=OFF
+  
+  sql_query_range = SELECT MIN(pid),MAX(pid) FROM <?=$TABLE?> WHERE 1=1
+  sql_range_step = 20000
+  sql_query = SELECT * FROM <?=$TABLE?> WHERE pid>=$start AND pid<=$end
+  
+  sql_attr_uint = pid
+  sql_attr_uint = userId
+  sql_attr_uint = comId
+  sql_attr_uint = cusId
+  sql_attr_uint = catId
+  sql_attr_uint = isHidden
+  sql_attr_uint = viewedNum
+  sql_attr_uint = speId
+  sql_attr_uint = beginTime
+  sql_attr_uint = beginTime2
+  sql_attr_uint = isdeleted
+
+  sql_attr_float = beginPrice
+  sql_attr_float = beginRefPrice
+  sql_attr_float = endRefPrice
+  sql_attr_float = bargainPrice
+
+  sql_attr_string = comName
+  sql_attr_string = comShortName
+  sql_attr_string = itemName
+  sql_attr_string = author 
+  sql_attr_string = decade
+  sql_attr_string = bigImg
+
+}

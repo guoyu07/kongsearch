@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="http://xiaoxi.kongfz.com/css/im/main.css" />
+<script src="http://xiaoxi.kongfz.com/js/jquery/jquery.min.js"></script>
+<script src="http://xiaoxi.kongfz.com/js/webim_core.js"></script>
+<link href="css/shop_main.css" rel="stylesheet" type="text/css">
+<link href="css/top.css" rel="stylesheet" type="text/css">
+<title>孔夫子旧书搜索——全球最大旧书搜索引擎</title>
+<style type="text/css">
+body{ margin:0; padding:0; text-align:center;}
+form{margin:0px;}
+#top001,#footer001{ margin:0 auto}
+#adv01{ margin:20px auto 20px auto;}
+#adv01 .bg01{ background:url(images/bg01.gif) repeat-x;}
+#adv01 td{ font-size:14px; line-height:250%;}
+#adv01 td img{ vertical-align:middle;}
+#adv01 td a{ font-size:12px;}
+</style>
+<script type="text/javascript" language="javascript" src="js/lib_common.js"></script>
+<script type="text/javascript" language="javascript" src="js/cls_state_county_linkage.js"></script>
+<script type="text/javascript" language="javascript" src="http://res.kongfz.com/js/core/base.js"></script>
+<script type="text/javascript">
+var linkage = new StateCountyLinkage();
+
+function searchSubmit()
+{
+    if(checkDate())
+    {
+        $search("frmSearchShop").submit();
+    }
+}
+
+//判断日期格式
+function checkDate(){
+    var pubDateStart = trim($search('pubDateStart').value);
+    var pubDateEnd   = trim($search('pubDateEnd').value);
+    var fomat = true;
+    if(pubDateEnd != '')
+    {
+        if(! pubDateEnd.match(/[0-9]{6}/))
+        {
+            $search('pubDateEnd').value = '';
+            $search('pubDateEnd').focus();
+            fomat = false;
+        }
+    }
+    if(pubDateStart != '')
+    {
+        if(! pubDateStart.match(/[0-9]{6}/))
+        {
+            $search('pubDateStart').value = '';
+            $search('pubDateStart').focus();
+            fomat = false;
+        }
+    }
+    if(fomat == false)
+    {
+        alert('出版日期格式应为6位数字，如201110！');
+        return false;
+    }
+    if(pubDateStart != '' && pubDateEnd != ''){
+        if(pubDateEnd - pubDateStart > 10000){
+            alert('出版日期范围不能大于100年！');
+            $search('pubDateStart').focus();
+            return false;
+        }
+    }
+    else if(pubDateStart == '' && pubDateEnd != '')
+    {
+        alert('请输入出版开始日期！');
+        $search('pubDateStart').focus();
+        return false;
+    }
+    else if(pubDateStart != '' && pubDateEnd == '')
+    {
+        alert('请输入出版结束日期！');
+        $search('pubDateEnd').focus();
+        return false;
+    }
+    return true;
+}
+
+function initFormFields()
+{
+linkage.fillState($search('state'));
+$search("county").value="";
+$search("category").value="0";
+var items = document.getElementsByName("sale");
+items[0].checked=true;
+items[1].checked=false;
+}
+</script>
+
+</head>
+<body onload="initFormFields()">
+<script>
+document.write('<s'+'cript src="http://user.kongfz.com/interface/server_interface/comm_header.php?site=search&'+Math.random()+'"></'+'script>');
+</script>
+<style>
+.kfz-header-top-nav-right .kfz-star-div{margin-top:0px;*margin-top:2px; float:left;}
+</style>
+
+<div id="header">
+<div id="logo"><a href="http://www.kongfz.com/"><img src="images/logo_com.gif" alt="孔夫子旧书网" /></a></div>
+<div id="topRight">
+<div id="memberLoginArea" style="text-align:right;height:20px;">
+</div>
+<div id="topmenu">
+<ul>
+<li><a href="http://www.kongfz.com/">首页</a></li>
+<li><a href="http://shop.kongfz.com/" target="_blank">书店区</a></li>
+<li><a href="http://www.kongfz.cn/" target="_blank">在线拍卖</a></li>
+<li><a href="http://zixun.kongfz.com/" target="_blank">资讯</a></li>
+<li><a href="http://www.gujiushu.com/" target="_blank">社区</a></li>
+</ul>
+<div class="clear"></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div id="subMenu2"></div>
+<!--top结束-->
+<!-- ImageReady-->
+<table id="adv01" width="682" height="412" border="0" cellpadding="0" cellspacing="0">
+<tr><td colspan="3"><img src="images/adv_s_01.gif" alt="" width="682" height="34" border="0" usemap="#Map"></td>
+</tr><tr><td width="10"  background="images/adv_s_02.gif"></td>
+<td width="662" class="bg01">
+<!--搜索项开始-->
+<form id="frmSearchShop" name="frmSearchShop" method="get" action="book_adv.jsp" target="_blank" onkeypress="if(event.keyCode==13)this.submit();">
+
+<table width="96%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
+
+<tr>
+<td width="16%" align="right">关键字：</td>
+<td width="65%" align="left"><input type="text" id="query" name="query" style="width:180px;" /></td>
+<td width="19%"></td>
+</tr>
+
+<tr>
+<td align="right">书名：</td>
+<td align="left"><input type="text" id="itemName" name="itemName" style="width:180px;" /></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">作者：</td>
+<td align="left"><input type="text" id="author" name="author" style="width:180px;" /></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">出版社：</td>
+<td align="left"><input type="text" id="press" name="press" style="width:180px;" /></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">图书类别：</td>
+<td align="left"><select style="width:184px;" id="category" name="category">
+    <option value="">请选择...</option>
+    <option label="线装古旧书" value="8000000000000000">线装古旧书</option>
+	<option label="民国旧书" value="9000000000000000">民国旧书</option>
+	<option label="名人墨迹" value="21000000000000000">名人墨迹</option>
+	<option label="名人字画" value="37000000000000000">名人字画</option>
+	<option label="期刊" value="10000000000000000">期刊</option>
+	<option label="报纸" value="41000000000000000">报纸</option>
+	<option label="外文旧书" value="6000000000000000">外文旧书</option>
+	<option label="二手教材" value="32000000000000000">二手教材</option>
+	<option label="小说" value="43000000000000000">小说</option>
+	<option label="文学" value="1000000000000000">文学</option>
+	<option label="历史" value="3000000000000000">历史</option>
+	<option label="地理" value="23000000000000000">地理</option>
+	<option label="法律" value="5000000000000000">法律</option>
+	<option label="军事" value="24000000000000000">军事</option>
+	<option label="经济" value="14000000000000000">经济</option>
+	<option label="管理" value="25000000000000000">管理</option>
+	<option label="艺术" value="4000000000000000">艺术</option>
+	<option label="生活" value="26000000000000000">生活</option>
+	<option label="少儿" value="27000000000000000">少儿</option>
+	<option label="社会文化" value="7000000000000000">社会文化</option>
+	<option label="教育" value="28000000000000000">教育</option>
+	<option label="语言文字" value="13000000000000000">语言文字</option>
+	<option label="哲学心理" value="44000000000000000">哲学心理</option>
+	<option label="宗教" value="29000000000000000">宗教</option>
+	<option label="政治" value="18000000000000000">政治</option>
+	<option label="体育" value="19000000000000000">体育</option>
+	<option label="理科工程技术" value="11000000000000000">理科工程技术</option>
+	<option label="自然科学" value="15000000000000000">自然科学</option>
+	<option label="医药卫生" value="17000000000000000">医药卫生</option>
+	<option label="计算机网络" value="31000000000000000">计算机网络</option>
+	<option label="工具书" value="16000000000000000">工具书</option>
+	<option label="国学古籍收藏	" value="12000000000000000">国学古籍收藏</option>
+	<option label="红色文献" value="34000000000000000">红色文献</option>
+	<option label="地图类" value="55000000000000000">地图类</option>
+	<option label="连环画" value="35000000000000000">连环画</option>
+	<option label="版画宣传画" value="56000000000000000">版画宣传画</option>
+	<option label="邮票税票" value="36000000000000000">邮票税票</option>
+	<option label="钱币" value="46000000000000000">钱币</option>
+	<option label="碑帖印谱" value="57000000000000000">碑帖印谱</option>
+	<option label="照片影像" value="38000000000000000">照片影像</option>
+	<option label="古玩杂项" value="58000000000000000">古玩杂项</option>
+	<option label="综合其他" value="20000000000000000">综合其他</option>
+
+	</select></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">售价：</td>
+<td align="left">
+<select style="width:184px;" id="priceLevel" name="priceLevel">
+<option value="" selected="selected">请选择价位...</option>
+<option value="1">1元以下</option>
+<option value="2">1～4元</option>
+<option value="3">5～9元</option>
+<option value="4">10～19元</option>
+<option value="5">20～49元</option>
+<option value="6">50～99元</option>
+<option value="7">100～199元</option>
+<option value="8">200～499元</option>
+<option value="9">500～999元</option>
+<option value="10">1000～1999元</option>
+<option value="11">2000～4999元</option>
+<option value="12">5000～9999元</option>
+<option value="13">1万～9万元</option>
+<option value="14">10万～99万元</option>
+<option value="15">100万元以上</option>
+</select>
+</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">出版日期：</td>
+<td align="left"><input type="text" id="pubDateStart" name="pubDateStart" maxlength="6" style="width:77px;" />&nbsp;至&nbsp;<input type="text" id="pubDateEnd" name="pubDateEnd" maxlength="6" style="width:77px;"/>
+<font color="gray">请输入年月，格式如：201110</font></td>
+<td align="left">&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">省市：</td>
+<td align="left"><select id="state" name="state" onchange="linkage.fillCounty(this.value, $search('county'))"></select>
+<select id="county" name="county" ><option value="" selected="selected">全部</option></select></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">书店名称：</td>
+<td align="left"><input type="text" id="shopName" name="shopName" style="width:180px;" /></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr title="出版日期在六年前的为旧书，六年内的为新书。">
+<td align="right">新旧书：</td>
+<td align="left"><select style="width:184px;" id="isNewBook" name="isNewBook">
+<option value="" selected="selected">全部</option>
+<option value="0">旧书</option>
+<option value="1">新书</option>
+</select></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">ISBN：</td>
+<td align="left"><input type="text" id="isbn" name="isbn" style="width:180px;"/></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td align="right">是否售出：</td>
+<td align="left"><input type="radio" name="sale" value="0" checked="checked"/>未售
+　<input type="radio" name="sale" value="1" />已售</td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td></td>
+<td align="left"><img onclick="searchSubmit();" style="cursor:pointer" src="images/bt_search.gif" alt="搜索" /></td>
+<td>&nbsp;</td>
+</tr>
+</table>
+
+</form>
+<!--搜索项结束-->
+</td>
+<td width="10" background="images/adv_s_04.gif">
+</td>
+</tr>
+<tr><td colspan="3"><img src="images/adv_s_05.gif" width="682" height="16" alt="" style="vertical-align:top"></td></tr>
+</table>
+<!-- End  -->
+<!--footer开始-->
+<div id="contact">
+<a href="http://www.kongfz.com/help/aboutus.php" target="_blank">关于孔夫子</a> - <a href="http://help.kongfz.com/" target="_blank">网站帮助</a> -<a href="http://www.kongfz.com/help/guanggao.php" target="_blank"> 广告业务</a> -<a href="http://www.kongfz.com/help/zhaopin.php" target="_blank"> 诚聘英才</a> -<a href="http://www.kongfz.com/help/lianxi.html" target="_blank"> 联系我们</a> -<a href="http://www.kongfz.com/help/copyright.php" target="_blank"> 版权隐私</a> - <a href="http://www.kongfz.com/community/links.php" target="_blank">友情链接</a> -<a href="http://shop.kongfz.com/advice.php?act=add" target="_blank"> 意见建议</a>
+</div>
+
+<div id="footer">
+版权所有©2002-2013 孔夫子图书网（<a href="http://www.kongfz.com/">www.kongfz.com</a>）<br />
+Copyright © All rights reserved 京ICP 041501&nbsp;&nbsp;客服电话：010-64755951
+</div>
+<!--footer结束-->
+<map name="Map" id="Map"><area shape="rect" coords="7,3,152,30" href="adv.html" /><area shape="rect" coords="157,3,300,33" href="auction_adv.html" />
+</map>
+</body>
+</html>

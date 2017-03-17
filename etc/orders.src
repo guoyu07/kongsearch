@@ -1,0 +1,69 @@
+source <?=$INDEX?>_<?=$SHARD?> {
+  type = mysql  
+  sql_host = <?=$SQLHOST?><?=$EOL?>
+  sql_port = <?=$SQLPORT?><?=$EOL?>
+  sql_user = <?=$SQLUSER?><?=$EOL?>
+  sql_pass = <?=$SQLPASS?><?=$EOL?>
+  sql_db = <?=$SQLDB?><?=$EOL?>
+  
+  sql_query_pre = SET NAMES utf8  
+  sql_query_pre = SET SESSION query_cache_type=OFF
+  
+  sql_query_range = SELECT MIN(pid),MAX(pid) FROM <?=$TABLE?> WHERE 1=1
+  sql_range_step = 20000
+  sql_query = SELECT * FROM <?=$TABLE?> WHERE pid>=$start AND pid<=$end AND 1=1
+  
+  sql_attr_uint = pid
+  sql_attr_uint = shopId
+  sql_attr_uint = bizType
+  sql_attr_uint = shopkeeperId
+  sql_attr_uint = userId
+  sql_attr_uint = orderStatus
+  sql_attr_uint = createdTime
+  sql_attr_uint = shippingId
+  sql_attr_uint = payId
+  sql_attr_uint = buyerReviewed
+  sql_attr_uint = sellerReviewed
+  sql_attr_uint = applyRefundStatus
+  sql_attr_uint = applyRefundTime
+  sql_attr_uint = isRemove
+  sql_attr_uint = isdeleted
+  sql_attr_uint = payStatus
+  sql_attr_uint = shippingStatus
+  sql_attr_uint = sellerConfirmedTime
+  sql_attr_uint = startPayTime
+  sql_attr_uint = payTime
+  sql_attr_uint = shippingTime
+  sql_attr_uint = receivedTime
+  sql_attr_uint = finishTime
+  sql_attr_uint = delay
+  
+  sql_attr_bigint = area
+
+  sql_attr_float = goodsAmount
+  sql_attr_float = favorableMoney
+  sql_attr_float = shippingFee
+  sql_attr_float = allAmount
+  
+  sql_attr_string = shopName
+  sql_attr_string = nickname
+  sql_attr_string = orderMessage
+  sql_attr_string = date
+  sql_attr_string = month
+  sql_attr_string = shippingComCode
+  sql_attr_string = shippingCom
+  sql_attr_string = shippingTel
+  sql_attr_string = shipmentNum
+  sql_attr_string = moneyOrderNum
+  sql_attr_string = logisticFlowId
+  sql_attr_string = receiverName
+  sql_attr_string = phoneNum
+  sql_attr_string = mobile
+  sql_attr_string = email
+  sql_attr_string = address
+  sql_attr_string = zipCode
+  sql_attr_string = itemIds
+  sql_attr_string = itemNames
+
+  sql_attr_json = items
+}

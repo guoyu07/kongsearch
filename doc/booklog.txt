@@ -1,0 +1,5 @@
+服务名：审核日志搜索
+
+curl -XPUT '$host:$port/booklog?pretty'
+
+curl -XPUT '$host:$port/booklog/verify/_mapping' -d '{"verify":{"dynamic":false,"_all":{"store":true,"analyzer":"ik"},"properties":{"itemname":{"type":"string","include_in_all":true,"analyzer":"ik"},"shopname":{"type":"string","include_in_all":true,"analyzer":"ik"},"nickname":{"type":"string","include_in_all":true,"analyzer":"ik"},"opname":{"type":"string","include_in_all":true,"analyzer":"ik"},"shopid":{"type":"integer"},"userid":{"type":"integer"},"itemid":{"type":"integer"},"biztype":{"type":"integer"},"op":{"type":"integer"},"optype":{"type":"integer"},"optime":{"type":"integer"},"match5":{"type":"integer"},"distkey":{"type":"string","include_in_all":true,"analyzer":"ik"},"comparedb":{"type":"integer"},"certifynum":{"type":"integer"}}}}'

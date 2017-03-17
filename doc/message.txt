@@ -1,0 +1,25 @@
+服务名：消息搜索
+
+        1、建立索引_v1 
+		curl -XPUT '$host:$port/message_v1?pretty'
+	2、设置索引映射 //messageid为唯一
+		curl -XPUT '$host:$port/message_v1/message/_mapping' -d '{"message":{"dynamic":false,"_all":{"store":true,"analyzer":"ik"},"properties":{"id":{"type":"long"},"messageid":{"type":"long","include_in_all":false},"catid":{"type":"integer"},"sender":{"type":"integer"},"sendernickname":{"type":"string","include_in_all":false,"index":"not_analyzed"},"_sendernickname":{"type":"string","analyzer":"ik"},"receiver":{"type":"integer"},"receivernickname":{"type":"string","include_in_all":false,"index":"not_analyzed"},"_receivernickname":{"type":"string","analyzer":"ik"},"msgcontent":{"type":"string","include_in_all":false,"index":"not_analyzed"},"_msgcontent":{"type":"string","analyzer":"ik"},"sendtime":{"type":"integer"},"contentid":{"type":"string","index":"not_analyzed"},"isdeleted":{"type":"short","include_in_all":false}}}}'
+	3、调整索引设置
+		curl -XPUT '$host:$port/message_v1/_settings' -d '{"index" : {"translog" : {"flush_threshold_ops":"100000"}}}'
+		curl -XPUT '$host:$port/message_v1/_settings' -d '{"index" : {"number_of_replicas" : 0}}'
+	4、数据采集
+		sh bin/gatherES.sh message
+	5、调整回索引设置
+		curl -XPUT '$host:$port/message_v1/_settings' -d '{"index" : {"number_of_replicas" : 1}}'
+	6、优化：
+		curl -XPOST '$host:$port/message_v1/_optimize'
+		curl -XPOST '$host:$port/message_v1/_optimize?only_expunge_deletes=true'
+		curl -XPOST '$host:$port/message_v1/_optimize?max_num_segments=1'
+	7、添加别名
+		curl -XPOST '$host:$port/_aliases' -d '{ "actions": [{ "add": {"alias": "message","index": "message_v1"}}]}'
+	8、索引更新
+		sh bin/indexupdateES.sh start 
+	9、索引优化
+		sh bin/indexupdateES.sh optimize message
+	10、删除半年之前消息
+		nohup php /data/project/kongsearch/script/delMessage.php > /dev/null 2>&1 &

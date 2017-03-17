@@ -1,0 +1,557 @@
+/**
+ * 查询建议代理
+ * @desc 用于查询时对用户输入给予建议，显示相关词语列表供用户选择。
+ * @param string inputName
+ * @author xieshengtao
+ * @email xie.s.t@163.com
+ */
+function QuerySuggestAgent(inputName)
+{
+    //var serverUrl = "http://localhost:8080/sug/suggest_server.jsp";
+    var serverUrl = "http://search.kongfz.com/sug/suggest_server.jsp";
+    var self = this;
+    var inputId = inputName;
+    var suggestFontSize = 12;
+    var leftOffset = 0;// 水平偏移
+    var topOffset = -1;// 垂直偏移
+    var suggestInput = null;//输入框
+    var suggestBox = null;//联想词列表框
+    var suggestItems = [];//联想词列表元素
+    var suggestPos = -1;
+    var suggestData = [];
+    var isMouseSelected = false;
+    var isArrowKeySelected = false;
+    var iframe = null;// 遮罩窗口对象
+    var timer = null;
+    var scriptElement = null; // Script标签元素
+    var currentQuery = "";
+    var queryCache = {};//查询结果缓存
+    var cacheExpire = 300;// 缓存过期时间，单位为秒
+    
+    /**
+     * 启动联想输入框组件
+     */
+    this.start = function()
+    {
+        initSuggest();
+    };
+    
+    /**
+     * 设置服务端链接
+     * @param url
+     */
+    this.setServerUrl = function(url)
+    {
+        if (null != url && "" != url) {
+            serverUrl = url;
+        }
+    };
+    
+    /**
+     * 设置联想输入框的位置偏移
+     */
+    this.setPosOffset = function(left)
+    {
+        leftOffset = left;
+        //topOffset  = top;
+    };
+    
+    /**
+     * 设置联想输入框的字体大小
+     */
+    this.setFontSize = function(size)
+    {
+        suggestFontSize = size;
+    };
+    
+    /**
+     * 创建遮罩窗口
+     */
+    function createBoardWindow()
+    {
+        iframe = document.createElement('IFRAME');
+        iframe.frameBorder=0;
+        iframe.style.cssText="display:none;position:absolute;left:0px;top:0px;";
+        document.body.appendChild(iframe);
+    }
+    
+    /**
+     * 初始化联想框
+     */
+    function initSuggest() 
+    {
+        // 取得输入框对象，并清除其记忆
+        suggestInput = $search(inputId);
+        if(null == suggestInput){ return; }
+        suggestInput.setAttribute("autocomplete","off");
+        suggestInput.setAttribute("maxLength","50");
+        
+        // 创建联想列表框元素，并追加到页面中
+        suggestBox = document.createElement("DIV");
+        suggestBox.style.cssText = "display:none;position:absolute;border:1px solid #817F82;background-color:#FFFFFF";
+        document.body.appendChild(suggestBox); 
+        
+        // 在IE中使用iframe挡住select表单元素
+        if(document.all){ createBoardWindow(); }
+        
+        // 创建Script标签，并添加到页面中
+        if(document.all){
+            initCommunicationEquipment(suggestCallback);
+        }
+        
+        // 监听页面窗口变化事件，自动调整联想列表框
+        addEventListener(window, "resize", resizeWindow);
+        
+        // 监听页面点击事件，或输入框失去焦点的事件，用于隐藏联想列表框
+        addEventListener(document.documentElement, "click", hideSuggestBox);
+        addEventListener(suggestInput, "blur", hideSuggestBox);
+        
+        // 监听输入框的键盘事件，用于捕获输入内容，或高亮显示当前选择的列表项目
+        addEventListener(suggestInput, "keydown", suggestInputKeydown);
+        addEventListener(suggestInput, "keyup", suggestInputKeyup);
+        
+        // 每 5 分钟清空一次查询缓存
+        clearQueryCache();
+    }
+    
+    /**
+     * 清空查询结果缓存
+     * 默认为每隔5分钟就清空查询结果缓存。
+     */
+    function clearQueryCache()
+    {
+        queryCache = {};
+        setTimeout(clearQueryCache, cacheExpire * 1000);
+    }
+    
+    /**
+     * 初始化用于向服务端请求数据的通信器
+     * 基于JavaScript脚本注入的方式实现提交表单数据
+     */
+    function initCommunicationEquipment(callback)
+    {
+        scriptElement = document.createElement( "script" ); 
+        scriptElement.language = "javascript"; 
+        scriptElement.type     = "text/javascript"; 
+        scriptElement.defer    = true; 
+        //scriptElement.src      = serverUrl;//'&rand='+Math.random()
+        if (document.all) {
+            scriptElement.onreadystatechange = callback;
+            //oScript.onload = callback;
+        } else {
+            scriptElement.onload = callback;
+        }
+        var oHead = document.getElementsByTagName('HEAD').item(0); 
+        oHead.appendChild(scriptElement);
+    }
+    
+    /**
+     * 使用上下方向键选择联想词列表框中的项目
+     */
+    function selectSuggestItem(e)
+    {
+        e = e || window.event;
+        var code = e.keyCode;
+        if (38 != code && 40 != code) {
+            isArrowKeySelected = false;
+            return; 
+        }
+        isArrowKeySelected = true;
+        
+        if(null == suggestData || 0 == suggestData.length){ return; }
+        if(null == suggestItems || 0 == suggestItems.length){ return; }
+        if(null == suggestBox || null == suggestInput){ return; }
+        // 取消先前的选择
+        if(suggestPos > -1){
+            darkenSuggestItem(suggestItems[suggestPos]);
+        }
+        // 移动当前项
+        if(38 == code){ suggestPos--; }
+        if(40 == code){ suggestPos++; }
+        if(suggestPos < 0 ){ suggestPos = suggestData.length -1; }
+        if(suggestPos > suggestData.length - 1 ){ suggestPos = 0; }
+        // 高亮当前选择荐
+        brightenSuggestItem(suggestItems[suggestPos]);
+        if("none" == suggestBox.style.display){
+            suggestBox.style.display = "block";
+        }
+        // 将选择项的值赋给输入框
+        suggestInput.value = suggestData[suggestPos];
+    }
+    
+    function suggestInputKeydown(e)
+    {
+        selectSuggestItem(e);
+    }
+
+    function suggestInputKeyup(e)
+    {
+        if(null == suggestInput){ return; }
+        var query = trim(suggestInput.value);
+        query = query.substr(0, 25);
+        if("" != query){
+            if(!isArrowKeySelected){
+                requestQuerySuggest(query);
+            } else {
+                if(0 == suggestData.length){
+                    requestQuerySuggest(query);
+                }
+            }
+        } else {
+            hideSuggestBox();
+        }
+    }
+    
+    /**
+     * 请求查询关键词
+     */
+    function requestQuerySuggest(query)
+    {
+        // 1、先在缓存中查找，若缓存中则取出显示，不用向服务端发出请求
+        if (inCache(query)) {
+            hideSuggestBox();
+            suggestData = queryCache[query];
+            loadSuggestBox(suggestData);
+            return;
+        }
+        
+        // 2、向服务器发送GET请求。在回调函数中取得结果并显示建议词语列表
+        currentQuery = query;
+        var content = "query=" + encodeURIComponent(query);
+        var url = serverUrl + "?" + content + "&r=" + Math.random();
+        if (document.all && (null != scriptElement)) {
+            scriptElement.src = url;
+            window.status= "";
+        } else {
+            crossDomainRequest(url, suggestCallback);
+        }
+        // 发送结束，等待服务端响应请求并返回结果。
+    }
+    
+    /**
+     * 是否在查询结果缓存中
+     */
+    function inCache(query)
+    {
+        return ("undefined" != typeof(queryCache[query]));
+    }
+    
+    /**
+     * 回调函数：显示建议词列表
+     */
+    function suggestCallback()
+    {
+        // 变量 sugWords 是从服务端注入的。根据需要可以从服务端注入不同的JS变量。
+        if("undefined" == typeof(sugWords)){sugWords = null;}
+        // IE下需要加此判断，防止回调函数被多次调用。FF无此问题。
+        if(null == sugWords || !(sugWords instanceof Array)){return;}
+
+        hideSuggestBox();
+        
+        suggestData = sugWords;
+        queryCache[currentQuery] = sugWords;
+        
+        if ("" != trim(suggestInput.value)) {
+            loadSuggestBox();
+        }
+
+        currentQuery = "";
+        // 使用完 sugWords 变量后需要设置为null。
+        sugWords = null;
+    }
+    
+    /**
+     * 跨域请求(GET)
+     * @param url
+     * @param callback
+     */
+    function crossDomainRequest(url, callback)
+    {
+        var oHead   = document.getElementsByTagName('HEAD').item(0); 
+        var oScript = document.createElement( "script" ); 
+        oScript.language = "javascript"; 
+        oScript.type     = "text/javascript"; 
+        oScript.defer    = true; 
+        oScript.src      = url;//'&rand='+Math.random()
+        if (document.all) {
+            oScript.onreadystatechange = callback;
+            //oScript.onload = callback;
+        } else {
+            oScript.onload = callback;
+        }
+        oHead.appendChild(oScript);
+    }
+
+    /**
+     * 调整窗口页面时自动调整联想输入框位置
+     */
+    function resizeWindow()
+    {
+        if(null == timer){
+            timer = setTimeout(function(){ fixedSuggestBox(); timer = null; }, 200);
+        }
+    }
+
+    /**
+     * 固定联想列表框位置和宽度
+     */
+    function fixedSuggestBox()
+    {
+        if(null == suggestInput || null == suggestBox){ return; }
+        var pos = findPos(suggestInput);
+        var x = (document.all ? (pos[0] + leftOffset) : pos[0]);
+        var y = (pos[1] + suggestInput.offsetHeight + topOffset);
+        var w = (suggestInput.offsetWidth - 2);
+        suggestBox.style.left = x + "px";
+        suggestBox.style.top = y + "px";
+        suggestBox.style.width = w  + "px";
+        if(document.all){
+            iframe.style.left = x + 'px';
+            iframe.style.top = y + 'px';
+            iframe.style.width = suggestInput.offsetWidth  + 'px';
+        }
+    }
+    
+    /**
+     * 隐藏联想列表框
+     */
+    function hideSuggestBox()
+    {
+        if(isMouseSelected){ return; }
+        isArrowKeySelected = false;
+        suggestPos = -1;
+        suggestData = [];
+        if(null != suggestBox){
+            suggestBox.innerHTML = "";
+            suggestBox.style.display = "none";
+            if(document.all){
+                iframe.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * 加载联想列表框
+     */
+    function loadSuggestBox()
+    {
+        if (!("undefined" != typeof(suggestData) && (suggestData instanceof Array) && suggestData.length > 0)) {
+            return;
+        }
+        suggestPos = -1;
+        createSuggestItems();
+        fixedSuggestBox();
+        if(null != suggestBox){
+            suggestBox.style.display = "block";
+            suggestBox.style.zIndex = 65535;
+            if(document.all){
+                iframe.style.height = suggestBox.offsetHeight + "px";
+                iframe.style.display = 'block';
+            }
+        }
+    }
+
+    /**
+     * 装入联想词语列表
+     */
+    function createSuggestItems()
+    {
+        if (null == suggestBox || null == suggestInput) { return; }
+        if (null == suggestData || "undefined" == typeof(suggestData) || 0 == suggestData.length) { return; }
+        // 创建列表框的各项目元素
+        var width = suggestInput.offsetWidth;
+        var htmlStr = "";
+        var cssText="padding:2px 4px 2px 4px;line-height:normal;cursor:default;width:"+width+"px;font-size:"+suggestFontSize+"px";
+        htmlStr = "<table onselectstart=\"return false\" cellpadding=\"2\" cellspacing=\"0\"><tbody>";
+        for(var i=0; i < suggestData.length; i++){
+            htmlStr += "<tr><td align=\"left\" valign=\"middle\" style=\"" + cssText + "\">" + suggestData[i] + "</td></tr>";
+        }
+        htmlStr += "</tbody></table>";
+        suggestBox.innerHTML = htmlStr;
+        // 设置列表框各项目的鼠标事件
+        suggestItems = suggestBox.getElementsByTagName("TR");
+        if(null == suggestItems || 0 == suggestItems.length){ return; }
+        for(var i=0; i < suggestItems.length; i++){
+            setSuggestMouseEvent(suggestItems[i], suggestData[i], i);
+        }
+    }
+    
+    /**
+     * 设置联想框各项目的鼠标事件
+     */
+    function setSuggestMouseEvent(obj, value, index)
+    {
+        if(null == obj){ return; }
+
+        obj.onmouseover = function(){
+            if(suggestPos > -1){
+                darkenSuggestItem(suggestItems[suggestPos]);
+            }
+            suggestPos = index;
+            brightenSuggestItem(this);
+        };
+        
+        obj.onmouseout = function(){
+            darkenSuggestItem(this);
+        };
+        
+        obj.onmousedown = function(){ isMouseSelected = true; };
+        
+        obj.onmouseup = function(){ isMouseSelected = false; };
+        
+        obj.onclick = function(){
+            suggestInput.value = value;
+            submitQuery(suggestInput);
+        };
+    }
+    
+    /**
+     * 提交查询
+     */
+    function submitQuery(input)
+    {
+        var objForm = getParentFormElement(input);
+        if (null != objForm && "submit" in objForm) {
+            //按照新搜索格式请求新的地址
+            if((objForm.action.indexOf("kongfz.com/product/") >=0) || (objForm.action.indexOf("kongfz.com/book.jsp") >=0)){
+                var qVal = $search('query').value;
+                var saleStatus = $search('sale').value;
+                qVal = KFZ.util.charToUnicode(qVal);
+                var url = KFZ.site.search + 'product/z' + qVal + 'y' + saleStatus + '/';
+                window.open(url);
+                return false;
+            }
+			else if("siteFlag" in objForm){
+				var pmSearchUrl = '';
+				var formActionValue = '';
+				var formAct = '';
+				var formQuery = '';
+				//增加siteFlag标志位，给首页的联想词调用
+				if(objForm.siteFlag.value == 'indexCur'){
+					formActionValue = 'http://www.kongfz.cn/search_result.php';
+					formAct = 'oldSearch';
+					formQuery = objForm.query.value;
+					pmSearchUrl = encodeURI(formActionValue + '?searchType=pm&act=' + formAct + '&query=' + formQuery);
+					window.open(pmSearchUrl);
+					return false;
+				}
+				else if(objForm.siteFlag.value == 'indexHis'){
+					formActionValue = 'http://search.kongfz.com/auction.jsp';
+					formQuery = encodeURI(objForm.query.value);
+					pmSearchUrl = formActionValue + '?searchType=pm&act=' + formAct + '&query=' + formQuery;
+					window.open(pmSearchUrl);
+					return false;
+				}
+			}
+            else{
+                objForm.submit();
+            }
+        }
+    }
+
+    /**
+     * 变亮
+     */
+    function brightenSuggestItem(obj)
+    {
+        if (null == obj) { return; }
+        obj.style.backgroundColor="#3366CC"; 
+        obj.style.color="#FFFFFF";
+    }
+
+    /**
+     * 变暗
+     */
+    function darkenSuggestItem(obj)
+    {
+        if (null == obj) { return; }
+        obj.style.backgroundColor="#FFFFFF"; 
+        obj.style.color="#000000";
+    }
+    
+    /**
+     * 取得父级的FORM表单对象
+     * @param obj
+     */
+    function getParentFormElement(obj)
+    {
+        var tagName = "";
+        var element = obj;
+        while(undefined != element){
+            tagName = element.tagName;
+            if("string" == typeof(tagName) || (tagName instanceof String)){
+                if("FORM" == tagName.toUpperCase()){
+                    return element;
+                }
+            }
+            element = element.parentNode;
+        }	
+        return null;
+    }
+    
+    /**
+     * 判断一个元素是否存在于一个数组中
+     */
+    function inArray(array, element)
+    {
+        if ("undefined" != typeof(array) && (array instanceof Array)) {
+            for(var i in array){
+                if(element == array[i]){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 清除字符串的前后空白字符
+     */
+    function trim(str)
+    {
+        if(null == str && "string" != typeof(str)){ return str; }
+        var regExp = /^\s*(.*?)\s+$/;
+        return str.replace(regExp,"$1");
+    }
+    
+    function $search(id){return document.getElementById(id);}
+    function findPos(obj)
+    {
+        var curleft = curtop = 0;
+        if (obj.offsetParent) {
+            curleft = obj.offsetLeft;
+            curtop = obj.offsetTop;
+            while (obj = obj.offsetParent) {
+                curleft += obj.offsetLeft;
+                curtop += obj.offsetTop;
+            }
+        }
+        return [curleft,curtop];
+    }
+    
+    /**
+     * 添加事件监听
+     */
+    function addEventListener(obj, eventName, callback)
+    {
+        if (document.all) {
+            obj.attachEvent("on" + eventName, callback);
+        } else {
+            obj.addEventListener(eventName, callback, false); 
+        }
+    }
+    
+    /**
+     * 取消事件监听
+     */
+    function removeEventListener(obj, eventName, callback)
+    {
+        if (document.all) {
+            obj.detachEvent("on" + eventName, callback);
+        } else {
+            obj.removeEventListener(eventName, callback, false); 
+        }
+    }
+
+} // end class
+

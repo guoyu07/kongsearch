@@ -1,0 +1,12 @@
+<%@ page language="java" %>
+<%@ page pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=utf-8" %>
+<html>
+<head>
+<title>孔夫子旧书搜索——全球最大旧书搜索引擎</title>
+	<script>window.location.href='http://search.kongfz.com';</script>
+
+</head>
+
+<body></body>
+</html>

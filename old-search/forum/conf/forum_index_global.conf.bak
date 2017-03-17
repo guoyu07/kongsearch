@@ -1,0 +1,75 @@
+#-------------------------------------------------------------------------------------------
+# Message Server Config
+#-------------------------------------------------------------------------------------------
+
+#status: started, stoped
+ManagerStatus='started';
+
+#server ip and port
+ManagerClass='com.kongfz.search.service.forum.ForumContentServer';
+ManagerHost='192.168.1.3';
+ManagerPort='9200';
+
+# management service name
+ManagerService='ForumContentService';
+
+# use ram or use disk
+IsUseRamIndex='1';
+
+# exception log file
+ExceptionLog='/data/forum/logs/exception_log/forum_exception.log';
+
+# guarder interval
+GuarderInterval='60';
+
+# highlight search results
+EnableQueryHighlight='1';
+
+#---------------------------------------------------------------------------
+# Build index config
+#---------------------------------------------------------------------------
+
+# indexing log file
+IndexingLog='/data/forum/logs/indexing_log/forum_indexing.log';
+
+IndexHome='/data/forum/data/index/';
+
+BuildHome='/data/forum/data/build/tmsmg_index/';
+
+PostBuildHome='/data/forum/data/build/posts_index/';
+
+ArticleBuildHome='/data/forum/data/build/article_index/';
+
+# rebuild index flag
+IsRebuildIndex='0';
+
+IsRebuildPostIndex='0';
+
+IsRebuildArticleIndex='1';
+
+#---------------------------------------------------------------------------
+# Mysql config
+#---------------------------------------------------------------------------
+
+# mysql config file
+MysqlConfigFile='/data/forum/conf/mysql_db_config.conf';
+
+# tid in threads table
+CurrentIdStart='804287';
+
+# pid in posts table
+CurrentPostIdStart='8367310';
+
+# tid increase step
+IncreaseStep='30000';
+
+# php config file
+PhpConfigFile='/data/forum/conf/php_config.conf';
+
+#---------------------------------------------------------------------------
+# Debug options
+#---------------------------------------------------------------------------
+
+IsDebug='0';
+
+

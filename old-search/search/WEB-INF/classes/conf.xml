@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	* 注　意　*
+	1.如果多个值使用同一个属性，则使用 ‘ ; ’进行分割记录
+ -->
+<configuration><!-- 当前节点下所有的属性都只能配置name -->
+	<context-name>sphinxVerify</context-name>
+	<session-factory>
+		<index><!-- 索引源信息 -->
+			<online> <!-- 在线图书 -->
+				<property name="host">192.168.1.83</property>
+				<property name="port">9307</property>
+				<property name="dataname">product_all</property>
+			</online>
+			<offline> <!-- 非在线图书 -->
+				<property name="host">192.168.1.239</property>
+				<property name="port">9308</property>
+				<property name="dataname">product_all</property>
+			</offline>
+		</index>
+		<source><!-- 数据库源信息 -->
+			<property name="host">127.0.0.1</property>
+			<property name="port">3306</property>
+			<property name="username">root</property>
+			<property name="password"></property>
+			<property name="dataname">kongv2</property>
+		</source>
+	</session-factory>
+	
+	<!-- 搜索运行参数 -->
+	<search-params>
+		<!-- sphinx读取数据顶峰值 -->
+		<property name="max_matches">5000</property>
+	</search-params>
+	
+	<!-- 审核参数 -->
+	<trust-params>
+		<redis><!-- redis相关地址 -->
+			<property name="host">192.168.1.210</property>
+			<property name="port">6379</property>
+		</redis>
+		<error-queue-redis><!-- 审核失败队列地址 -->
+			<property name="host">192.168.1.210</property>
+			<property name="port">6379</property>
+		</error-queue-redis>
+		<gearman-service>
+			<!-- gearman连接地址
+				以下只能存在两种情况：
+					1.port只有一个值，host多个值
+					2.port值与host值数量一致
+			 -->
+			<property name="host">192.168.1.132;192.168.1.105</property>
+			<property name="port">4730</property>
+		</gearman-service>
+		
+		<shop-database-params><!-- 书店数据库相关参数 -->
+			<main-params><!-- 书店主库IP地址 -->
+				<property name="host">192.168.1.67</property>
+				<property name="port">3306</property>
+				<property name="dataname">shop</property>
+			</main-params>
+			<public-connect><!-- 所有库的用户名、密码 -->
+				<property name="username">sunyutian</property>
+				<property name="password">sun100112</property>
+			</public-connect>
+		</shop-database-params>
+		
+	</trust-params>
+	
+	<log-files><!-- 日志文件 -->
+		<search-info><!-- 搜索相关的审核日志文件地址 -->
+			<property name="info">/opt/tomcat6/logs/neo_search/search-info-(yyyy-MM-dd).log</property>
+			<property name="error">/opt/tomcat6/logs/neo_search/search-error-(yyyy-MM-dd).log</property>
+		</search-info>
+		<trust-info><!-- 数据库相关修改的审核日志服务器 -->
+			<property name="info">/opt/tomcat6/logs/neo_search/trust-info-(yyyy-MM-dd).log</property>
+			<property name="error">/opt/tomcat6/logs/neo_search/trust-error-(yyyy-MM-dd).log</property>
+		</trust-info>
+	</log-files>
+	
+	<other-service-address><!-- 其他相关服务配置信息 -->
+		<!-- 审核服务 -->
+		<property name="VerifyLogService">rmi://192.168.1.105:9823/VerifyLogService</property>
+		<!-- 自动审核服务 -->
+		<property name="SmartVerifyService">rmi://192.168.1.105:9812/SmartVerifyService</property>
+		<!-- 清空图书缓存接口 -->
+		<property name="BookCacheService">http://shop.kongfz.com/interface/item/deleteItemCache</property>
+		<!-- 到信任索引库 -->
+		<property name="TrustBookService">rmi://192.168.1.105:9824/TrustBookService</property>
+		<property name="ShopService">http://shop.kongfz.com/interface/item/service/</property>
+		<!-- 新搜索分词地址 -->
+		<property name="NewSearchAnalyzerService">http://booklib.kongfz.com/shop/index/</property>
+	</other-service-address>
+</configuration>

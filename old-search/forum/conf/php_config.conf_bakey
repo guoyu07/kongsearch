@@ -1,0 +1,12 @@
+#---------------------------------------------------------------------------
+# Php config
+#---------------------------------------------------------------------------
+
+Key='awbwf3243232ghjkler343535etyt';
+TidInterface='http://shequ.gujiushu.com/my_extends/interface/server_interface/delete_tmsgs.php';
+PidInterface='http://shequ.gujiushu.com/my_extends/interface/server_interface/delete_posts.php';
+Tid='tids';
+Pid='pids';
+Sign='sign';
+
+

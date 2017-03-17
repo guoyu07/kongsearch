@@ -1,0 +1,102 @@
+/* CSS Document */
+*{ font-size:14px; margin:0; padding:0;}
+body{ background-color:#FFFFFF; font-size:14px; line-height:200%;text-align:center; margin:0 auto; padding:0;}
+img{ border:0;}
+ul,ol,li{list-style:none;}
+div{ margin:0; text-align:left;}
+td{ font-size:12px; line-height:200%;}
+div,form,img,ul,ol,li,dl,dt,dd {margin: 0; padding: 0;}
+h1,h2,h3,h4,h5,h6 { margin:0; padding:0;}
+/*链接*/
+a:link{color:#00097b;text-decoration:none;}
+a:visited{color:#00097b;text-decoration:none;}
+a:hover{color:#da0000;text-decoration:underline;}
+a.red:link{ color:#da0000;}
+a.red:hover{text-decoration:underline;}
+a.red:visited{ color:#da0000}
+a.red1:link{ color:#da0000;text-decoration:underline;}
+a.red1:hover{text-decoration:underline;}
+a.red1:visited{ color:#da0000;text-decoration:underline;}
+a.blue:link{ color:blue;text-decoration:none;}
+a.blue:hover{ color:#da0000;text-decoration:underline;}
+a.blue:visited{color:blue;text-decoration:none;}
+a.green:link{ color:#00645b;text-decoration:none;}
+a.green:hover{ color:#da0000;text-decoration:underline;}
+a.green:visited{color:#00645b;text-decoration:none;}
+a.yellow:link{ color:yellow;text-decoration:underline;}
+a.yellow:hover{ color:#da0000;text-decoration:underline;}
+a.yellow:visited{color:yellow;text-decoration:underline;}
+/*其他*/
+.clear{ clear:both; line-height:0; font-size:0;}
+.marginB{ margin-bottom:6px;}
+.marginT{ margin-top:6px;}
+.font12{ font-size:12px; line-height:24px;}
+.font746a01{ color:#746a01;}
+.strong{ font-weight:bold;}
+.dot{ border-bottom:1px dotted #b4b4b1; font-size:6px; line-height:6px;}
+.red{ color:#da0000;}
+.requiredField{ color:#da0000;}
+.help{color:#666; font-size:12px;}
+
+/*前端小窗口css*/
+.foreWindow {
+	padding:1px;
+	background-color: #e9f0f8;
+	position: absolute;
+	width: 305px;
+	left: 291px;
+	top: 150px;
+	display: none;
+}
+
+.winTitlebar {
+	
+	background-color: #88b8e7;
+	padding:4px;
+	font-size: 14px;
+	line-height:16px;
+	font-weight: bold;
+	color: #FFFFFF;
+	border:1px solid #94bde6;
+}
+.winContent div input{ padding-top:3px;}
+.winContent {
+	background-color: #e9f0f8;
+	padding:8px;
+}
+#tabBd{ padding:8px; border-bottom:1px solid #b7cade; border-left:1px solid #b7cade; border-right:1px solid #b7cade;}
+/*书店简介*/
+#about{ height: auto!important;
+height: 300px;
+min-height: 300px; 
+margin-left:20px; margin-right:20px;}
+/*书店小调查*/
+#vote{ text-align:center;height:300px; }
+#vote h2{ font-size:14px; text-align:center; margin-top:12px;}
+#vote01{ text-align:left; width:700px;}
+#vote01 *{ font-size:14px;}
+
+#list table{width:100%;border:0;border-collapse:collapse; position: relative;}
+
+#list th{background: url("images/bg_h2.gif"); height: 30px;}
+#list th.list_th12 .toolbar {height: 28px; left: 0; padding-left: 5px; padding-top: 2px; position: absolute; top: 0; width: 490px;}
+#list th.list_th12 .toolbar .toolbarchild {float: left; line-height: 22px; margin-left: 2px; width: 290px;}
+#list th.list_th12 .toolbar label.forsorttypeSelect {color: black; font-weight: bold; margin-left: 5px;}
+#list th.list_th12 .toolbar #sorttypeSelect {height: 21px; width: 142px;}
+#list th.list_th12 .toolbar .sortPanel {width: 192px;}
+#list th.list_th3,
+#list th.list_th4,
+#list th.list_th5 {font-weight: normal; text-align: center; vertical-align: middle;}
+#list th.list_th4 {width: 64px;}
+#list th.list_th5 {width: 90px;}
+
+#list td.list_td1{padding-top:14px;width:100px;vertical-align:middle;}
+#list td.list_td1 img{
+max-width: 100px;
+max-height: 125px; 
+width:100px\9;
+}
+#list td.list_td2{width:370px;}
+#list td.list_td3{vertical-align:top;}
+#list td.list_td4{vertical-align:top;}
+#list td.list_td5{vertical-align:top;text-align:center;}

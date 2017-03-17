@@ -1,0 +1,512 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ page import="java.net.URLDecoder"%>
+<%@ page import="java.net.URLEncoder"%>
+
+<%
+String path = request.getContextPath();
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+//处理请求中文乱码
+request.setCharacterEncoding("UTF-8");
+response.setCharacterEncoding("UTF-8");
+
+/** 使用java定义，防止之前写的js监听暴露dialog信息
+* 显示方式[supplement:尾部追加,dialog:弹出]】*/
+String finalShowShape = "supplement";
+//得到之前选中的参数值
+String choiceLevel = request.getParameter("search_group_level_select_dom");
+String choiceGroup = request.getParameter("search_group_info_select_dom");
+//添加默认值，防止js解析错误
+if(null == choiceLevel) choiceLevel = "";
+if(null == choiceGroup) choiceGroup = "";
+//显示关键字分类框的控件ID
+String showKeyName = request.getParameter("showKeywordsDomIDName");
+if(null == showKeyName) showKeyName = "";
+//回调函数
+String backgroung = request.getParameter("searchKeywordBackgroungFnName");
+//回调函数类型
+String backgroungType = request.getParameter("searchKeywordBackgroungFnType");
+//之前选中的分类级别
+String groupLevel = request.getParameter("search_group_level_select_dom");
+if(null == groupLevel) groupLevel = "";
+//选中的分类ID
+String groupId = request.getParameter("search_group_info_select_dom");
+if(null == groupId) groupId = "";
+//默认的分类ID
+String defaultLevel = request.getParameter("searchKeywordDefaultLevelID");
+if(null == defaultLevel) defaultLevel = "";
+//第三级中所有的选项
+String hiddenKeywordAllOptions = request.getParameter("search_group_info_find_all_keyword_none_info_value_dom_hidden");
+if(null == hiddenKeywordAllOptions){
+	hiddenKeywordAllOptions = "";
+} else {
+	try {//防乱码
+		hiddenKeywordAllOptions = URLEncoder.encode(hiddenKeywordAllOptions, "UTF-8");
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+}
+//隐藏的keyword的值
+String hiddenKeyword = request.getParameter("search_group_info_find_all_keyword_none_info_value_dom_hidden");
+//第三级选择框选中的值
+String threeOptionSelected = request.getParameter("search_group_info_find_all_keyword_none_info");
+if(null == threeOptionSelected) threeOptionSelected = "";
+if(null == hiddenKeyword){
+	hiddenKeyword = "";
+} else {
+	String[] keys = hiddenKeyword.split("OR");hiddenKeyword = "";
+	for(String k : keys){
+		if(!threeOptionSelected.equals("") && threeOptionSelected.equals(k)){
+			hiddenKeyword+="<option value='"+k+"' selected='selected'>"+k+"</option>";
+		} else {
+			hiddenKeyword+="<option value='"+k+"'>"+k+"</option>";
+		}
+	}
+	try {
+		hiddenKeyword = URLEncoder.encode(hiddenKeyword, "UTF-8");
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+}
+String searchTypeOnlineQuery = request.getParameter("searchTypeOnlineQuery");
+if(searchTypeOnlineQuery == null) searchTypeOnlineQuery = "";
+%>
+<script type="text/javascript" src="<%=basePath%>js/jquery.min.js"></script>
+<%if(finalShowShape.equals("dialog")){%>
+<script type="text/javascript" src="<%=basePath%>js/artDialog4.1.6/artDialog.js?skin=twitter"></script>
+<script type="text/javascript" src="<%=basePath%>js/artDialog4.1.6/plugins/iframeTools.js"></script>
+<%}%>
+
+<script type="text/javascript">
+	var $j = jQuery.noConflict();
+	
+	$j(function() {//jquery-加载器
+		
+		/** 当前关键字功能弹出层存储器 */
+		var searchChoiceKeywordDialogWindow = null;
+		/** 内网检索调用的函数名称 */
+		var backgroungFnName = "<%=backgroung%>";
+		/** 默认选中的分类 */
+		var defaultLevelID = "<%=defaultLevel%>";
+		/** 点击按钮搜索类型 */
+		var clickSearchType = "<%=searchTypeOnlineQuery%>";
+		/** 回调函数类型 [group = 二级回调,key = 三级回调]*/
+		var backgroungFnType = "<%=backgroungType%>";
+		
+		//执行初始化方法
+		initializtion();
+		
+		//初始化函数
+		function initializtion(){
+			if("<%=showKeyName%>" != ""){
+				var showDom = $j("#<%=showKeyName%>");
+				//初始化加载内容
+				useContainerControlLoadOnlinePage(showDom,"<%=groupLevel%>","<%=showKeyName%>",1,"<%=groupId%>",
+						"<%=hiddenKeyword%>","<%=hiddenKeywordAllOptions%>");
+				$j("[name='search_choice_keywords_dom']").hide();
+			}
+		}
+		
+		//绑定选择可疑关键字按钮点击事件
+		$j("[name='search_choice_keywords_dom']").die();
+		$j("[name='search_choice_keywords_dom']").live("click", function() {
+			var _this = $j(this);
+			defaultLevelID = _this.attr("defaultLevel");//默认使用的级别，当前值存在，则不显示级别选择项
+			backgroungFnName = _this.attr("closeFn");//得到当前弹出层内部检索，需要调用的函数
+			clickSearchType = _this.attr("searchType");//搜索类型
+			backgroungFnType = _this.attr("backgroungFnType");//回调类型[group = 二级回调,key = 三级回调]
+			<%if(finalShowShape.equals("dialog")){%>//弹出显示
+				//使用dialog进行弹出选项控件，即不影响新功能，又能破坏原有代码
+				searchChoiceKeywordDialogWindow = art.dialog.load('<%=basePath%>admin/keywords/readKeywords.jsp?t='+new Date().getTime(),{
+					id:'search_choice_keywords_dom',
+					title:'关键字选择',
+					lock:true,
+	                opacity:0.2,
+					button : [{name : '取消',focus : true}],
+					close:function(){
+						searchChoiceKeywordDialogWindow = null;
+					}
+				});
+			<%} else {%>//尾部追加方式显示
+				var showDomName = _this.attr("show");
+				var showDom = $j("#"+showDomName);
+				var act = 0;
+				if(defaultLevelID != ""){
+					act = 1;
+				}
+				useContainerControlLoadOnlinePage(showDom,"-1",showDomName,act,"","","");
+			<%}%>
+			_this.hide();//隐藏当前控件
+		});
+		
+		/**
+		* 使用指定控件去加载内容界面,
+		* 具体参数查看参数配置，加 * 表示参数不用传递
+		* @param control 需要加载内容的控件
+		*/
+		function useContainerControlLoadOnlinePage(control,nLevel,showDomName,actV,groupInfoID,threeOption,hiddenThreeOption){
+			control.load("<%=basePath%>admin/keywords/readKeywords.jsp?t="+new Date().getTime(),{
+				showShape:"<%=finalShowShape%>",//* 显示方式[不用传递的参数]
+				searchKeywordBackgroungFnName:backgroungFnName,//* 选中后的回调函数
+				searchBackgroungFnType:backgroungFnType,//* 回调函数类型
+				defaultLevel:defaultLevelID,//* 不显示级别，取当前级别中的值
+				level:nLevel,//选中级别
+				showKeywordsDomIDName:showDomName,//加载内容的控件ID值
+				act:actV,//当前的操作类型，是否需要主动查询级别下的分类[0 = not ,1 = need]
+				groupId:groupInfoID,//之前选中的分类ID
+				threeOption:threeOption,//第三级的选项值
+				searchType:clickSearchType,//点击外网检索类
+				hiddenThreeOption:hiddenThreeOption//第三级的选项值的隐藏值
+			});
+		}
+		
+		//所有需要读取子项数据的选择控件的类型，只有级别和分类需要查询数据
+		var domType = ["level","group"];
+		//所有需要显示选择项的控件类型，只有分类和关键字
+		var showType = ["group","key"];
+		
+		//分类级别或关键字分类改变事件
+		$j("[name='search_group_level_select_dom'],[name='search_group_info_select_dom'],[name='search_key_word_select_dom'],[name='search_group_info_find_all_keyword_none_info']").die();
+		$j("[name='search_group_level_select_dom'],[name='search_group_info_select_dom'],[name='search_key_word_select_dom'],[name='search_group_info_find_all_keyword_none_info']").live("change",function(){
+			var _this = $j(this);//取得当前控件的jquery对象
+			if(domType.contain(_this.attr("domType"))){//需要查询子项数据的控件
+				if("<%=finalShowShape%>" == "dialog" || ("<%=finalShowShape%>" != "dialog" && !showType.contain(_this.attr("domType")))){//是弹出方式
+					ajaxPostData(_this,_this.val());//进行ajax数据请求
+				} else {//不是弹出方式
+					if(showType.contain(_this.attr("domType"))){//显示该控件的选中项
+						//如果又是需要加载子控件数据，并还需要显示，则是分类【非弹出分类改变后，直接调用回调函数】
+						if (backgroungFnName != null && backgroungFnName != "" && backgroungFnName.length > 0) {
+							//得到当前分类的所有关键字
+							asyncReadKeywordJavascriptFile(_this.val(), _this.attr("domType"),function(back){
+								var labelDom = $j("#search_group_info_find_all_keyword_none_info");
+								if(back != "" && back.length > 0) {//有返回值
+//									labelDom.hide();//隐藏(无)
+									labelDom.show();//不隐藏
+									//得到第三级下拉框选项的值
+									var childOptions = back.split("OR");
+									if(childOptions.length > 0){
+										//得到第三级的显示值存储控件，并将值存至该控件中
+										var childrenDom = $j("[name='search_group_info_find_all_keyword_none_info_value_dom_hidden']");
+										childrenDom.val(back);
+										labelDom.find("option").remove();//删除子控件选中的值
+										labelDom.append("<option value=''>--请选择--</option>");
+										$j(childOptions).each(function(ei,ed){
+											labelDom.append("<option value='"+ed+"'>"+ed+"</option>");
+										});
+									}//在执行回调函数之前执行，用户界面刷新后保存当前值
+									//开始执行回调函数
+									if(backgroungFnType == "group"){//二级回调
+										eval(backgroungFnName + "('" + back + "')");
+									}
+								} else {
+									labelDom.show();
+								}
+							});
+							/** 不使用ajax读取数据库
+							asyncAjaxPostFindAllData(_this.val(), _this.attr("domType"), function(back){
+								var labelDom = $j("#search_group_info_find_all_keyword_none_info");
+								if(back != "" && back.length > 0) {//有返回值
+									labelDom.hide();
+									var json = $j.parseJSON(back);//转换成json
+									var searchWhereCondition = "";
+									for(var tmp in json){
+										if(searchWhereCondition.length > 0){
+											searchWhereCondition += " OR " + json[tmp];
+										} else {
+											searchWhereCondition = json[tmp];
+										}
+									}
+									//开始执行回调函数
+									eval(backgroungFnName + "('" + searchWhereCondition + "')");
+								} else {
+									labelDom.show();
+								}
+							});
+							*/
+						}
+					}
+				}
+			} else {//不需要查询子项数据的控件，即第三级控件，关键词选择框
+				if(backgroungFnType == "key"){//三级回调
+					if(_this.val() != ""){
+						eval(backgroungFnName + "('" + _this.val() + "')");
+					}
+				}
+			}
+			if("<%=finalShowShape%>" == "dialog"){//只有dialog模式才显示
+				if(showType.contain(_this.attr("domType"))){//显示该控件的选中项
+					var option = _this.find("option:selected");//得到当前选中的选中的值
+					showSelected(_this,option.text(),option.val());//显示该控件的选项
+				}
+			}
+		});
+		
+		/** 使用ajax进行数据请求
+		* @param _this 当前控件的jquery对象
+		* @param value 当前控件的值
+		* 添加value为在选中有分类的级别后，会默认选中第一个分类，将第一个分类的值加载出来，+
+		* 防止如果需要当前默认选中的分类的值时，需要重新切换
+		*/
+		function ajaxPostData(_this,value){
+			//当前控件的子控件名称
+			var childName = _this.attr("childName");
+			var child = $j("[name='"+childName+"']");//得到当前控件的子控件
+			if(value != "" && domType.contain(_this.attr("domType"))){//当前分类级别选中的值存在
+				/**异步请求，得到相关数据，防止浏览器缓存
+				asyncAjaxPostFindAllData(value, _this.attr("domType"), function(back){
+					showResult(back,child,_this);
+				});
+				**/
+				//当前读取js文件中的值
+				asyncReadKeywordJavascriptFile(value, _this.attr("domType"), function(back){
+					showResultJavascript(back,child,_this);
+				});
+			} else {//将子控件的选项，设置成空
+				showResult("",child,_this);
+			}
+		}
+		
+		/**
+		* 显示结果集
+		* @param back ajax的返回结果
+		* @param dom 需要显示内容的jquery控件
+		*/
+		function showResult(back,dom,_this){
+			var html = "";
+			if(back != "" && back.length > 0){//当前有返回值
+				var i = 0;
+				var json = $j.parseJSON(back);//转换成json
+				//非dialog则添加请选择，防止选择完级别后，选中了第一个分类，但是界面无刷新去搜索该分类
+				if("<%=finalShowShape%>" != "dialog"){
+					html = "<option value=''>--请选择--</option>";
+				}
+				for(var key in json){//循环json字符串
+					html +="<option value='"+key+"'>"+json[key]+"</option>";
+					if("<%=finalShowShape%>" == "dialog"){//只有dialog模式才加载第一个选项
+						if(i == 0){//能进入该函数的只有分类和关键字
+							ajaxPostData(dom,key);//默认选中第一个选项，如果当前控件是分类，则进行子控件的数据查询
+							//先判断子控件是因为级别不进行显示，因为如果当前分类控件有值，则还需要取分类第一个值进行查询子关键字，+
+							//所有关键字的选项还会走到该该方法来，所以只要显示子控件即可
+							if(showType.contain(dom.attr("domType"))){
+								showSelected(dom,json[key],key);//显示该控件的选中项
+							} else {//如果当前有变动的控件是分类控件，则显示分类控件的内容
+								showSelected(_this,json[key],key);//显示该控件的选中项
+							}
+						}
+					}
+					i++;
+				}
+			} else {//没有返回结果
+				html = "<option value=''>--请选择--</option>";
+				//当前控件的子控件名称
+				var child = $j("[name='"+dom.attr("childName")+"']");
+				if(child.attr("domType") == "key"){//如果当前是子控件是关键字，则父级控件是分类
+					child.html(html);//因父级分类控件无可选项，则关键字控件也无空选项
+				}
+				//无选项时，显示无
+				if(showType.contain(dom.attr("domType"))){
+					showSelected(dom,"","");//该子控件无返回值，则显示无
+					//如果当前选中了一个没有分类的级别，执行上面一行只会清除分类的选项，而关键字的选项不会被清除+
+					//ajaxPostData方法会取当前控件的子控件，而当前分类控件无值，则把当前分类控件的值设置成空+
+					//方法判断当前控件无值，则会将子控件的值设置为空，显示也就成无
+					ajaxPostData(dom,"");
+				}
+			}
+			dom.html(html);
+		}
+		
+		/**
+		* 显示从js中取出来的结果集
+		* @param back ajax的返回结果
+		* @param dom 需要显示内容的jquery控件
+		*/
+		function showResultJavascript(back,dom,_this){
+			var html = "";
+			if(back != "" && back.length > 0){//当前有返回值
+				var i = 0;
+				//非dialog则添加请选择，防止选择完级别后，选中了第一个分类，但是界面无刷新去搜索该分类
+				if("<%=finalShowShape%>" != "dialog"){
+					html = "<option value=''>--请选择--</option>";
+				}
+				for(var i = 0; i < back.length; i++){//循环json字符串
+					html +="<option value='"+back[i].id+"'>"+back[i].name+"</option>";
+				}
+			} else {//没有返回结果
+				html = "<option value=''>--请选择--</option>";
+			}
+			dom.html(html);
+		}
+		
+		/** 
+		* 显示当前选中的选项值
+		* @param _this 当前需要显示的控件
+		* @param content 需要显示的内容[option的显示内容]
+		* @param val 当前选项的值[option的value]
+		*/
+		function showSelected(_this,content,val){
+			//showContent是用着显示选中的内容，content是索引连接隐藏的值
+			var showContent = "",value = "";
+			var domName = _this.attr("name");
+			if(val != "" && val.length > 0){//如果当前控件选中的值不是空
+				showContent = content;
+				value = val;
+			} else {//当前控件的值是空，则显示无
+				value = "";
+				showContent = "无";
+			}
+			$j("[name='"+domName+"_lable']").text(showContent);//显示选中内容
+			//进行外网检索，只有关键字才能进行外网检索
+			var netIndex = $j("[name='"+domName+"_outer_net_index']");
+			//当前控件的值存在，则可以进行外网访问
+			changeDomShowContent(netIndex,value,content,"外网检索");
+			//进行内网检索，分类与关键字都能进行内网检索
+			var backgroungIndex = $j("[name='"+domName+"_backgroung_index']");
+			//有子选项的为分类，分类需要得到所有的关键字
+			if(domType.contain(_this.attr("domType"))){
+				asyncAjaxPostFindAllData(value,"group",function(back){
+					if (back != "" && back.length > 0) {
+						var json = $j.parseJSON(back);//转换成json
+						content = "";
+						for ( var i in json) {
+							if (content == "") {
+								content = json[i];
+							} else {
+								content += " OR " + json[i];
+							}
+						}
+						changeDomShowContent(backgroungIndex, value,content, "内网检索");
+					} else {//返回值为空，则无法进行内网检索
+						changeDomShowContent(backgroungIndex, "", "","内网检索");
+					}
+				});
+			} else {//关键字改变，只进行改关键字选择
+				changeDomShowContent(backgroungIndex, value, content, "内网检索");
+			}
+		}
+		
+		/**使用异步请求得到，相关数据
+		* @param value 当前选中的值
+		* @param domTypeVal 当前控件类型
+		* @param callbackFn 回调函数
+		*/
+		function asyncAjaxPostFindAllData(value,domTypeVal,callbackFn){
+			$j.ajax({//异步请求，得到相关数据，防止浏览器缓存
+				url:"<%=basePath%>admin/keywords/cls_ajax_keyword.jsp?_="+ new Date().getTime(),
+				data : {val : value,domType : domTypeVal},
+				async : false,
+				type : "post",
+				success : function(back) {//去除全部空格，并显示该子控件的选项
+					back = back.replace(/\s/g, '');
+					callbackFn && callbackFn(back);
+				}
+			});
+		}
+		
+		/**
+		* @param value 当前选择的级别ID
+		* @param domTypeVal 当前需要查询子数据的类型【根据修改方案，改参数不需要使用到，但保留当前参数，供后续需要修改时使用】
+		* @param callbackFn 回调函数
+		*/
+		function asyncReadKeywordJavascriptFile(value,domTypeVal,callbackFn){
+			var jsonArray = null;
+			//根据修改方案，改方法只是需要根据级别得到该级别下的分类，及相关信息
+			//选择的分类ID存在，关键字集合存在
+			if(domType.contain(domTypeVal) && value != "" && m_distrustKeywords){
+				//循环所有的关键字相关信息
+				for(var i = 0; i < m_distrustKeywords.length; i++){
+					//当前关键字跟类信息的级别 = 当前选中的级别
+					if("level" == domTypeVal){//选择的是级别
+						if(m_distrustKeywords[i].level == value){
+							if(jsonArray == null) jsonArray = new Array();
+							jsonArray.push(m_distrustKeywords[i]);
+						}						
+					} else {//选择的是分类
+						if(m_distrustKeywords[i].id == value){//如果当前的分类ID与选中的分类ID一致
+							jsonArray = m_distrustKeywords[i].keywords;//取出当前分类的关键字，并返回
+							break;//一个分类只有一条数据
+						}
+					}
+				}
+			}
+			if(jsonArray == null) jsonArray = "";
+			callbackFn && callbackFn(jsonArray);
+		}
+		
+		/**
+		 * @param indexDom 当前显示控件
+		 * @param value 选中的值
+		 * @param content 需要进行搜索的值
+		 * @param showDesc 值存在时显示的内容
+		 */
+		function changeDomShowContent(indexDom, value, content, showDesc) {
+			if (value != "") {
+				indexDom.attr("attrVal", content);
+				indexDom.text(showDesc);
+			} else {
+				indexDom.attr("attrVal", "");
+				indexDom.text("无选项");
+			}
+		}
+
+		/** 外网搜索访问地址，查询全部 */
+		//var netIndexQueryTemplate = "http://search.kongfz.com/book.jsp?query=[whereCondition]&sale=2";
+		var netIndexQueryTemplate = "http://search.kongfz.com/product/z[whereCondition]y2/";
+		
+		var as = {shop:"http://search.kongfz.com/product/z[whereCondition]y2/",
+				aution:"http://search.kongfz.com/auction.jsp?query=[whereCondition]"};
+		
+		//外网检索点击事件绑定【现在的外网检索在readKeywords.jsp】
+		$j("[attrNet='index']").die();
+		$j("[attrNet='index']").live("click",function() {
+			var _this = $j(this), attrVal = _this.attr("attrVal");//得到当前点击的控件
+			attrVal = attrVal.replace(/(^\s*|\s*$)/, '');
+			if (attrVal != "" && attrVal.length > 0) {
+				var url = netIndexQueryTemplate.replace("[whereCondition]", toUnicode(attrVal));
+				window.open(url);
+			}
+		});
+
+		//内网检索点击事件绑定,内网则就是当前界面
+		$j("[arrtNet='backgroung']").die();
+		$j("[arrtNet='backgroung']").live("click",function() {
+			var _this = $j(this), attrVal = _this.attr("attrVal");//得到当前点击的控件
+			attrVal = attrVal.replace(/(^\s*|\s*$)/, '');
+			if (attrVal != "" && attrVal.length > 0) {//有选择的值，才能进行检索
+				//如果弹出层存在，则进行弹出层关闭
+				if (searchChoiceKeywordDialogWindow != null) {
+					searchChoiceKeywordDialogWindow.close();
+					if (backgroungFnName != null && backgroungFnName != "" && backgroungFnName.length > 0) {
+						eval(backgroungFnName + "('" + attrVal + "')");
+					}
+				} else {
+					alert("你是怎么做到的，告诉我...");
+				}
+			}
+		});
+		
+		//将字符转换成unicode代码
+		function toUnicode(str) {
+			if (!str) return;
+		    var unicode = '', i = 0, len = (str = '' + str).length;
+			for (; i < len; i ++) {
+				unicode += 'k' + str.charCodeAt(i).toString(16).toLowerCase();
+			}
+			return unicode;
+		}
+		
+	});
+
+	//给array添加内置函数，判断当前集合中是否存在当前val值
+	Array.prototype.contain = function(val) {
+		var _this = this;
+		var result = false;
+		if (this.length > 0) {//当前集合>0
+			for ( var i in _this) {//循环当前集合
+				if (_this[i] == val) {
+					result = true;
+					break;
+				}
+			}
+		}
+		return result;
+	}
+</script>

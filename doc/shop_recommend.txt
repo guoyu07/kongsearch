@@ -1,0 +1,23 @@
+服务名：书店推荐数据搜索
+
+
+        1、建立索引_v1 
+		curl -XPUT '$host:$port/shop_recommend_v1?pretty'
+	2、设置索引映射  itemId,itemName,catId,imgUrl,shopClass,addTime(上架时间),sellerId,shopId,count(最大展示次数初始20次),
+	isDelete,price,shopTrust(店铺信誉),ranker(商品评分)
+		curl -XPUT '$host:$port/shop_recommend_v1/item/_mapping' -d '{"item":{"dynamic":false,"_all":{"store":true,"analyzer":"ik"},"properties":{"itemid":{"type":"integer"},"itemname":{"type":"string","index":"not_analyzed"},"_itemname":{"type":"string","analyzer":"ik"},"catid":{"type":"long","include_in_all":false},"imgurl":{"type":"string","index":"not_analyzed","include_in_all":false},"shopclass":{"type":"short","include_in_all":false},"addtime":{"type":"integer","include_in_all":false},"sellerid":{"type":"integer","include_in_all":false},"shopid":{"type":"integer","include_in_all":false},"price":{"type":"float","include_in_all":false},"shoptrust":{"type":"integer","include_in_all":false},"ranker":{"type":"integer","include_in_all":false},"count":{"type":"integer","include_in_all":false},"isdeleted":{"type":"short","include_in_all":false}}}}'
+	3、调整索引设置
+		curl -XPUT '$host:$port/shop_recommend_v1/_settings' -d '{"index" : {"translog" : {"flush_threshold_ops":"100000"}}}'
+		curl -XPUT '$host:$port/shop_recommend_v1/_settings' -d '{"index" : {"number_of_replicas" : 0}}'
+	5、调整回索引设置
+		curl -XPUT '$host:$port/shop_recommend_v1/_settings' -d '{"index" : {"number_of_replicas" : 1}}'
+	6、优化：
+		curl -XPOST '$host:$port/shop_recommend_v1/_optimize'
+		curl -XPOST '$host:$port/shop_recommend_v1/_optimize?only_expunge_deletes=true'
+		curl -XPOST '$host:$port/shop_recommend_v1/_optimize?max_num_segments=1'
+	7、添加别名
+		curl -XPOST '$host:$port/_aliases' -d '{ "actions": [{ "add": {"alias": "shop_recommend","index": "shop_recommend_v1"}}]}'	
+	8、索引更新worker
+		sh /data/project/kongsearch/bin/indexupdateES.sh start shop_recommend
+	9、添加author，_author,author2字段
+		curl -XPUT '$host:$port/shop_recommend_v1/item/_mapping' -d '{"item":{"dynamic":false,"_all":{"store":true,"analyzer":"ik"},"properties":{"itemid":{"type":"integer"},"itemname":{"type":"string","index":"not_analyzed"},"_itemname":{"type":"string","analyzer":"ik"},"catid":{"type":"long","include_in_all":false},"imgurl":{"type":"string","index":"not_analyzed","include_in_all":false},"shopclass":{"type":"short","include_in_all":false},"addtime":{"type":"integer","include_in_all":false},"sellerid":{"type":"integer","include_in_all":false},"shopid":{"type":"integer","include_in_all":false},"price":{"type":"float","include_in_all":false},"shoptrust":{"type":"integer","include_in_all":false},"ranker":{"type":"integer","include_in_all":false},"count":{"type":"integer","include_in_all":false},"isdeleted":{"type":"short","include_in_all":false},"author":{"type":"string","index":"not_analyzed"},"_author":{"type":"string","analyzer":"ik"},"author2":{"type":"string","index":"not_analyzed"}}}}'

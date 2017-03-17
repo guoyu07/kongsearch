@@ -1,0 +1,78 @@
+source <?=$INDEX?>_<?=$SHARD?> {
+  type = mysql  
+  sql_host = <?=$SQLHOST?><?=$EOL?>
+  sql_port = <?=$SQLPORT?><?=$EOL?>
+  sql_user = <?=$SQLUSER?><?=$EOL?>
+  sql_pass = <?=$SQLPASS?><?=$EOL?>
+  sql_db = <?=$SQLDB?><?=$EOL?>
+  
+  sql_query_pre = SET NAMES utf8  
+  sql_query_pre = SET SESSION query_cache_type=OFF
+  
+  sql_query_range = SELECT MIN(pid),MAX(pid) FROM <?=$TABLE?> WHERE 1=1
+  sql_range_step = 20000
+  sql_query = SELECT * FROM <?=$TABLE?> WHERE pid>=$start AND pid<=$end AND 1=1
+
+  sql_attr_uint = pid
+  sql_attr_uint = authorId
+  sql_attr_uint = pressId
+  sql_attr_uint = jobId
+  sql_attr_uint = certifyStatus
+  sql_attr_uint = setNum
+  sql_attr_uint = jcatId1
+  sql_attr_uint = jcatId2
+  sql_attr_uint = isdeleted
+
+  sql_attr_bigint = catId
+
+  sql_attr_string = uniqueMd5
+  sql_attr_string = bookName
+  sql_attr_string = bookNamePinyin
+  sql_attr_string = catName
+  sql_attr_string = price
+  sql_attr_string = author
+  sql_attr_string = press
+  sql_attr_string = pubDate
+  sql_attr_string = edition
+  sql_attr_string = isbn
+  sql_attr_string = zcatId
+  sql_attr_string = editorComment
+  sql_attr_string = contentIntroduction
+  sql_attr_string = directory
+  sql_attr_string = Illustration
+  sql_attr_string = description
+  sql_attr_string = bookForeign
+  sql_attr_string = area
+  sql_attr_string = language
+  sql_attr_string = originalLanguage
+  sql_attr_string = catAgency
+  sql_attr_string = wordNum
+  sql_attr_string = pageNum
+  sql_attr_string = printingNum
+  sql_attr_string = printingTime
+  sql_attr_string = pageSize
+  sql_attr_string = impression
+  sql_attr_string = usedPaper
+  sql_attr_string = issn
+  sql_attr_string = unifiedIsbn
+  sql_attr_string = binding
+  sql_attr_string = tag
+  sql_attr_string = series
+  sql_attr_string = bookSize
+  sql_attr_string = bookWeight
+  sql_attr_string = normalImg
+  sql_attr_string = smallImg
+  sql_attr_string = bigImg
+  sql_attr_string = lifeStory
+  sql_attr_string = authorPhoto
+  sql_attr_string = authorName
+  sql_attr_string = authorNamePinyin
+  sql_attr_string = authorUrl
+  sql_attr_string = pressName
+  sql_attr_string = pressUrl
+  sql_attr_string = jobName
+  sql_attr_string = authorIds
+  sql_attr_string = authorNames
+  sql_attr_string = jobIds
+  sql_attr_string = jobNames
+}

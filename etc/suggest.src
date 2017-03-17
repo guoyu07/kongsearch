@@ -1,0 +1,21 @@
+source <?=$INDEX?>_<?=$SHARD?> {
+  type = mysql  
+  sql_host = <?=$SQLHOST?><?=$EOL?>
+  sql_port = <?=$SQLPORT?><?=$EOL?>
+  sql_user = <?=$SQLUSER?><?=$EOL?>
+  sql_pass = <?=$SQLPASS?><?=$EOL?>
+  sql_db = <?=$SQLDB?><?=$EOL?>
+  
+  sql_query_pre = SET NAMES utf8  
+  sql_query_pre = SET SESSION query_cache_type=OFF
+  
+  sql_query_range = SELECT MIN(pid),MAX(pid) FROM <?=$TABLE?> WHERE 1=1
+  sql_range_step = 20000
+  sql_query = SELECT * FROM <?=$TABLE?> WHERE pid>=$start AND pid<=$end
+
+  sql_attr_uint = querynum
+  sql_attr_uint = isdeleted
+
+  sql_field_string = word
+  sql_field_string = pinyin
+}

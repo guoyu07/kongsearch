@@ -1,0 +1,20 @@
+服务名：拍品足迹搜索
+
+
+        1、建立索引_v1 
+		curl -XPUT '$host:$port/footprint_pm_v1?pretty'
+	2、设置索引映射 itemId,itemName,catId,imgUrl,isSaled,insertTime,sellerId,viewerId,auctionClass,count,isDelete
+		curl -XPUT '$host:$port/footprint_pm_v1/footprint/_mapping' -d '{"footprint":{"dynamic":false,"_all":{"store":true,"analyzer":"ik"},"properties":{"id":{"type":"string","include_in_all":false,"index":"not_analyzed"},"itemid":{"type":"integer"},"itemname":{"type":"string","index":"not_analyzed"},"_itemname":{"type":"string","analyzer":"ik"},"catid":{"type":"long","include_in_all":false},"imgurl":{"type":"string","index":"not_analyzed","include_in_all":false},"auctionclass":{"type":"short","include_in_all":false},"issaled":{"type":"short","include_in_all":false},"inserttime":{"type":"integer","include_in_all":false},"sellerid":{"type":"integer","include_in_all":false},"viewerid":{"type":"integer","include_in_all":false},"count":{"type":"integer","include_in_all":false},"isdeleted":{"type":"short","include_in_all":false}}}}'
+	3、调整索引设置
+		curl -XPUT '$host:$port/footprint_pm_v1/_settings' -d '{"index" : {"translog" : {"flush_threshold_ops":"100000"}}}'
+		curl -XPUT '$host:$port/footprint_pm_v1/_settings' -d '{"index" : {"number_of_replicas" : 0}}'
+	4、数据采集
+		sh bin/gatherES.sh footprint_pm
+	5、调整回索引设置
+		curl -XPUT '$host:$port/footprint_pm_v1/_settings' -d '{"index" : {"number_of_replicas" : 1}}'
+	6、优化：
+		curl -XPOST '$host:$port/footprint_pm_v1/_optimize'
+		curl -XPOST '$host:$port/footprint_pm_v1/_optimize?only_expunge_deletes=true'
+		curl -XPOST '$host:$port/footprint_pm_v1/_optimize?max_num_segments=1'
+	7、添加别名
+		curl -XPOST '$host:$port/_aliases' -d '{ "actions": [{ "add": {"alias": "footprint_pm","index": "footprint_pm_v1"}}]}'

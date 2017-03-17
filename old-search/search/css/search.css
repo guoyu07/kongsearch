@@ -1,0 +1,159 @@
+UNKNOWN {
+	MARGIN: 0px 10px; BACKGROUND-COLOR: #ffffff; min-width: 800px
+}
+TABLE {
+	FONT-SIZE: 12px; COLOR: #5c5c5c; LINE-HEIGHT: 150%; FONT-FAMILY: "Arial", "Helvetica", "sans-serif"
+}
+P {
+	FONT-SIZE: 12px; COLOR: #000000; LINE-HEIGHT: 150%; FONT-FAMILY: "Arial", "Helvetica", "sans-serif"
+}
+SELECT {
+	FONT-SIZE: 12px; COLOR: #000000; LINE-HEIGHT: 150%; FONT-FAMILY: "Arial", "Helvetica", "sans-serif"
+}
+INPUT {
+	FONT-SIZE: 12px; COLOR: #000000; LINE-HEIGHT: 150%; FONT-FAMILY: "Arial", "Helvetica", "sans-serif"
+}
+DIV {
+	FONT-SIZE: 12px; COLOR: #000000; LINE-HEIGHT: 150%; FONT-FAMILY: "Arial", "Helvetica", "sans-serif"
+}
+FORM {
+	BORDER-RIGHT: 0px; PADDING-RIGHT: 0px; BORDER-TOP: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; BORDER-LEFT: 0px; PADDING-TOP: 0px; BORDER-BOTTOM: 0px
+}
+#index_box01 {
+	PADDING-RIGHT: 8px; PADDING-LEFT: 8px; BACKGROUND: #f1f1f1; PADDING-BOTTOM: 0px; MARGIN: 0px; WIDTH: 100%; PADDING-TOP: 2px; BORDER-BOTTOM: #d4d4d4 1px solid; HEIGHT: 19px; TEXT-ALIGN: right
+}
+#index_box02 {
+	PADDING-BOTTOM: 18px; WIDTH: 700px; PADDING-TOP: 18px; TEXT-ALIGN: center
+}
+#index_box03 {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; BACKGROUND-IMAGE: url(http://search.kongfz.com/images/bg_top03.gif); PADDING-BOTTOM: 0px; MARGIN: 0px; WIDTH: 700px; PADDING-TOP: 0px; HEIGHT: 25px; TEXT-ALIGN: center
+}
+#index_box04 {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; MARGIN: 0px; WIDTH: 700px; PADDING-TOP: 0px; TEXT-ALIGN: center
+}
+.topmenu_blue {
+	FONT-WEIGHT: bold; FONT-SIZE: 14px; BACKGROUND-IMAGE: url(http://search.kongfz.com/images/bg_top01.gif); WIDTH: 83px; COLOR: #000000; LINE-HEIGHT: 150%; BACKGROUND-REPEAT: repeat-x; HEIGHT: 25px; TEXT-ALIGN: center
+}
+.topmenu_grey {
+	FONT-SIZE: 14px; BACKGROUND-IMAGE: url(http://search.kongfz.com/images/bg_top02.gif); WIDTH: 83px; COLOR: #000000; LINE-HEIGHT: 150%; BACKGROUND-REPEAT: repeat-x; HEIGHT: 25px; TEXT-ALIGN: center
+}
+.topmenu_grey A {
+	DISPLAY: block; FONT-SIZE: 14px; WIDTH: 83px; COLOR: #000; LINE-HEIGHT: 180%; FONT-FAMILY: Arial; HEIGHT: 25px; TEXT-DECORATION: none
+}
+.topmenu_blue A {
+	DISPLAY: block; FONT-SIZE: 14px; WIDTH: 83px; COLOR: #000; LINE-HEIGHT: 180%; FONT-FAMILY: Arial; HEIGHT: 25px; TEXT-DECORATION: none
+}
+#index_toolbar {
+	PADDING-BOTTOM: 80px; WIDTH: 700px; TEXT-ALIGN: center
+}
+#index_footer {
+	BORDER-TOP: #999999 1px solid; WIDTH: 700px; COLOR: #5c5c5c; LINE-HEIGHT: 220%; PADDING-TOP: 6px; TEXT-ALIGN: center
+}
+.nav_button_2 {
+	FONT-WEIGHT: bolder; FONT-SIZE: 12px; BACKGROUND: #ffffff; CURSOR: hand; COLOR: #000000; TEXT-DECORATION: none
+}
+.nav_button_3 {
+	FONT-WEIGHT: bolder; FONT-SIZE: 12px; BACKGROUND: #ffffff; CURSOR: hand; COLOR: #000000; TEXT-DECORATION: none
+}
+.nav_button_1 {
+	FONT-WEIGHT: bolder; FONT-SIZE: 12px; BACKGROUND: #ffffff; CURSOR: hand; COLOR: #000000; TEXT-DECORATION: none
+}
+.S_T_black {
+	FONT-SIZE: 12px; COLOR: #000000
+}
+.S_T_B_black {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #000000
+}
+.S_T_B_green {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #46ac35
+}
+.S_T_B_red {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #ff0000
+}
+.S_T_blue {
+	FONT-SIZE: 12px; COLOR: #0044dd
+}
+A:link {
+	FONT-SIZE: 12px; COLOR: #4e4e4e; TEXT-DECORATION: none
+}
+A:visited {
+	FONT-SIZE: 12px; COLOR: #4e4e4e; TEXT-DECORATION: none
+}
+A:active {
+	FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A:hover {
+	FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.S_L_blue:link {
+	FONT-SIZE: 12px; COLOR: #0070c5; TEXT-DECORATION: none
+}
+A.S_L_blue:visited {
+	FONT-SIZE: 12px; COLOR: #0070c5; TEXT-DECORATION: none
+}
+A.S_L_blue:hover {
+	FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.S_L_blue:active {
+	FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.S_L_U_black:link {
+	FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.S_L_U_black:visited {
+	FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.S_L_U_black:hover {
+	FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: none
+}
+A.S_L_U_black:active {
+	FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: none
+}
+A.S_L_UB_black:link {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.S_L_UB_black:visited {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.S_L_UB_black:hover {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #cc0033; TEXT-DECORATION: none
+}
+A.S_L_UB_black:active {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #cc0033; TEXT-DECORATION: none
+}
+A.M_L_black:link {
+	FONT-SIZE: 14px; COLOR: #000000; TEXT-DECORATION: none
+}
+A.M_L_black:visited {
+	FONT-SIZE: 14px; COLOR: #000000; TEXT-DECORATION: none
+}
+A.M_L_black:hover {
+	FONT-SIZE: 14px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.M_L_black:active {
+	FONT-SIZE: 14px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.M_L_B_black:link {
+	FONT-WEIGHT: bold; FONT-SIZE: 14px; COLOR: #000000; TEXT-DECORATION: none
+}
+A.M_L_B_black:visited {
+	FONT-WEIGHT: bold; FONT-SIZE: 14px; COLOR: #000000; TEXT-DECORATION: none
+}
+A.M_L_B_black:hover {
+	FONT-WEIGHT: bold; FONT-SIZE: 14px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.M_L_B_black:active {
+	FONT-WEIGHT: bold; FONT-SIZE: 14px; COLOR: #000000; TEXT-DECORATION: underline
+}
+A.S_T_blue:link {
+	FONT-SIZE: 12px; COLOR: #0044dd; TEXT-DECORATION: none
+}
+A.S_T_blue:visited {
+	FONT-SIZE: 12px; COLOR: #0044dd; TEXT-DECORATION: none
+}
+A.S_T_blue:hover {
+	FONT-SIZE: 12px; COLOR: #0044dd; TEXT-DECORATION: none
+}
+A.S_T_blue:active {
+	FONT-SIZE: 12px; COLOR: #0044dd; TEXT-DECORATION: none
+}

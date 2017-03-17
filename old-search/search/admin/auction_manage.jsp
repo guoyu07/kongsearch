@@ -1,0 +1,1149 @@
+<%@ page contentType="text/html; charset=UTF-8" language="java"%>
+<%@ page import="java.util.*" %>
+<%@ page import="java.rmi.Naming" %>
+<%@ page import="java.net.URLEncoder"%>
+<%@ page import="com.kongfz.dev.util.text.StringUtils" %>
+<%@ page import="com.kongfz.dev.biz.util.CategoryHelper" %>
+<%@ page import="com.kongfz.dev.rmi.ServiceInterface" %>
+<%@ include file="cls_memcached_session.jsp"%>
+
+<!-- 添加新版关键字检索 -->
+<%@ include file="/admin/keywords/artDialogImports.jsp"%>
+
+<%!
+
+    /**
+     * 取得提交的违禁拍品的列表
+     */
+    private static List<Map<String, Object>> getViolativeBidList(String[] itemInfoList)
+    {
+        List<Map<String, Object>> recordList = new LinkedList<Map<String, Object>>();
+        if (null == itemInfoList) {
+            return recordList;
+        }
+        
+        for (String itemInfo : itemInfoList) {
+            String[] items = StringUtils.urldecode(itemInfo).split("\n");
+            if (null != items && items.length >= 5) {
+                Map<String, Object> record = new HashMap<String, Object>();
+                record.put("userId",         items[0].trim());
+                record.put("itemId",         items[1].trim());
+                record.put("nickname",       items[2].trim());
+                record.put("itemName",       items[3].trim());
+                record.put("sourceTable",    items[4].trim());
+                recordList.add(record);
+            }
+        }
+        return recordList;
+    }
+
+    /**
+     * 过滤查询的关键词
+     * @param keywords
+     * @return
+     */
+    private String filterKeywords(String keywords){
+        int maxlength = 350;
+        keywords = keywords.trim();
+        if(keywords.equals("支持书名、作者、出版社、店名、省市等多个关键字的复合查询")){
+            keywords="";
+        }
+        if( keywords.length() > maxlength){
+            keywords = keywords.substring(0, maxlength);
+        }
+        //屏蔽的字符：\ ! ( ) : ^ [ ] { } ~ * ? /
+        keywords = keywords.replaceAll("[\\\\\\!\\(\\)\\:\\^\\[\\]\\{\\}\\~\\*\\?/\'\";]", "");
+        //替换为空格的字符：全角空格　、制表符\t
+        keywords = keywords.replaceAll("[　\t]", " ");
+        //多个空格替换为一个空格
+        keywords = keywords.replaceAll("( )+", " ");
+        keywords = keywords.replaceAll("－－|--", "——");//两个全角减号替换为一个破折号
+        
+        //全角的＋、－、ＡＮＤ、ＯＲ替换为半角的
+        keywords = keywords.replaceAll("＋", "+");
+        keywords = keywords.replaceAll("－", "-");
+        keywords = keywords.replaceAll("ＡＮＤ", "AND");
+        keywords = keywords.replaceAll("ＯＲ", "OR");
+
+        //先去掉+或-前后的空格
+        keywords = keywords.replaceAll("( ?\\+ ?)+", "+");
+        keywords = keywords.replaceAll("( ?\\- ?)+", "-");
+        keywords = keywords.replaceAll("( ?AND ?)+", "AND");
+        keywords = keywords.replaceAll("( ?OR ?)+", "OR");
+        //再去掉连续的逻辑运算符
+        keywords = keywords.replaceAll("(\\+)+", "+");
+        keywords = keywords.replaceAll("(\\-)+", "-");
+        keywords = keywords.replaceAll("(AND)+", "AND");
+        keywords = keywords.replaceAll("(OR)+", "OR");
+        //去掉重叠的逻辑运算符
+        keywords = keywords.replaceAll("(\\-\\+)+", "-");
+        keywords = keywords.replaceAll("(\\+\\-)+", "+");
+        keywords = keywords.replaceAll("(ORAND)+", "OR");
+        keywords = keywords.replaceAll("(ANDOR)+", "AND");
+        //去掉行头和行尾的逻辑运算符
+        keywords = keywords.replaceAll("^\\+|^\\-|\\-$|\\+$|^AND|^OR|AND$|OR$", "");
+        keywords = keywords.replaceAll("^\\+|^\\-|\\-$|\\+$|^AND|^OR|AND$|OR$", "");
+        //规范化逻辑表达式
+        keywords = keywords.replaceAll("\\+", " +");
+        keywords = keywords.replaceAll("\\-", " -");
+        keywords = keywords.replaceAll("AND", " AND ");
+        keywords = keywords.replaceAll("OR", " OR ");
+        
+        return keywords;
+    }
+
+    /**
+     * 取得规范格式的日期(yyyy-mm-dd)
+      * @param date
+     * @return
+     */
+    private String formatDate(String date)
+    {
+        String normalDate = "";
+        try{
+            normalDate = date.substring(0,4) + "-"
+                       + date.substring(4,6) + "-"
+                       + date.substring(6,8);
+        }catch(Exception ex){
+            normalDate = "0000-00-00";
+        }
+        return normalDate;
+    }
+
+    /**
+     * 取得规范格式的日期(yyyy-mm)
+      * @param date
+     * @return
+     */
+    private String formatDateYM(String date){
+        String normalDate = "";
+        try{
+            normalDate = date.substring(0,4) + "-"
+                       + date.substring(4,6);
+        }catch(Exception ex){
+            normalDate = "0000-00";
+        }
+        return normalDate;
+    }
+
+    private String formatDateYMD(String date){
+        String normalDate = "";
+        try{
+            normalDate = date.substring(0,4) + "-"
+                       + date.substring(4,6) + "-"
+                       + date.substring(6,8);
+        }catch(Exception ex){
+            normalDate = "0000-00-00";
+        }
+        if("0000-00-00".equals(normalDate)){
+            normalDate =  "不详";
+        }
+        return normalDate;
+    }
+
+
+    private String buildCategoryOptions(String targetCatId)
+    {
+        List<String> topCatList = CategoryHelper.getTopCatIdList();
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("<option value=\"\" >所有</option>");
+        for (String catId : topCatList) {
+            String catName = CategoryHelper.getCategoryName(catId);
+            if(catId.equals(targetCatId)){
+                buffer.append("<option value=\""+catId+"\" selected=\"selected\" >"+catName+"</option>");
+            }else{
+                buffer.append("<option value=\""+catId+"\" >"+catName+"</option>");
+            }
+        }
+        return buffer.toString();
+    }
+
+    /**
+     * 取得拍品区的名称
+      * @param id
+     * @return
+     */
+    private String getAuctionArea(int id){
+        String[] auctionArea = new String[]{"所有", "珍本拍卖区", "大众拍卖区", "低价拍卖区"};
+        return ((0 <= id && id <= 3)? auctionArea[id] :""+id);
+    }
+
+    /**
+     * 取得拍品的类别描述
+      * @param id
+     * @return
+     */
+    private String getBidCategory(String catId)
+    {
+        return CategoryHelper.getCategoryFullName(catId);
+    }
+
+    /**
+     * 取得图书品相描述
+     */
+    private String getBookQuality(String quality)
+    {
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("10","一");
+        map.put("20","二");
+        map.put("30","三");
+        map.put("40","四");
+        map.put("50","五");
+        map.put("60","六");
+        map.put("65","六五");
+        map.put("70","七");
+        map.put("75","七五");
+        map.put("80","八");
+        map.put("85","八五");
+        map.put("90","九");
+        map.put("95","九五");
+        map.put("100","十");
+
+        String value = (String) map.get(quality);
+        if(null == value || "".equals(value)){
+            value = "一";
+        }
+        // return value+"品";
+        return value;
+    }
+
+    /**
+     * 显示导航页码
+     * @return
+     */
+    private String displayNavigation(int pageCount, int currentPage){
+        String htmlContent = "<label class=\"page_navigation\">";
+        if(pageCount > 0) {
+            htmlContent += "<a href=\"javascript:go(1)\">首页</a>";
+            //如果当前页为第一页，则不显示“上一页链接”
+            if(currentPage > 1){
+                htmlContent += "<a href=\"javascript:go("+(currentPage-1)+")\">上一页</a>";
+            }
+            //每次从当前页向后显示十页，如果不够十页，则全部显示。
+            int max = (currentPage < 100 ? 11 : 6);//显示的页码数量
+            int maxhalf = max / 2;
+            int start = (currentPage <= maxhalf) ? 1 : (currentPage - maxhalf);
+            int end = ((currentPage + maxhalf) <= pageCount) ? (currentPage + maxhalf) : pageCount;
+
+            for(int i = start; i <= end; i++){
+                if(currentPage == i){
+                    htmlContent += "<b>" + i + "</b>";
+                }else{
+                    htmlContent += "<a href=\"javascript:go("+i+")\">" + i + "</a>";
+                }
+            }
+            //如果当前页为最后一页，则不显示“下一页”链接
+            if(currentPage < pageCount){
+                htmlContent += "<a href=\"javascript:go("+(currentPage+1)+")\">下一页</a>";
+            }
+            htmlContent += "<a href=\"javascript:go("+pageCount+")\">末页</a>";
+        }
+        htmlContent += "</label>";
+        return htmlContent;
+    }
+	
+    /**
+	 * 将当前字符转换成16进制
+	 * @param str 需要转换的字符串
+	 * @return 返回转换并加密后的字符串
+	 */
+	private String toHexString(String str) {
+		StringBuffer sb = new StringBuffer("/product/z");//添加开始
+		int tmp = 0;
+		// 循环字符串的长度
+		for (int i = 0; i < str.length(); i++) {
+			tmp = str.codePointAt(i);// 得到Unicode代码点
+			sb.append("k");// 添加加密字符串
+			sb.append(Integer.toHexString(tmp).toLowerCase());// 转换成16进制
+		}
+		sb.append("y0/");//搜索
+		return sb.toString();
+	}
+    
+    /**
+     * 显示拍卖查询结果(用于删除拍品)
+     * @param bidList
+     * @param out
+     * @return
+     */
+    private void displayBidsTableForDelete(List bidList, JspWriter out) throws Exception
+    {
+        String htmlContent = "";
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("<table width=\"98%\" bgcolor=\"#FFFFFF\" align=\"center\" border=\"0\" cellspacing=\"1\" cellpadding=\"0\">");
+        buffer.append("<tr height=\"30\" bgcolor=\"#D8D8D8\" align=\"center\">");
+        buffer.append("<td bgcolor=\"#D8D8D8\" width=\"3%\"><img src=\"./images/smile.gif\" id=\"smile\" title=\"Ahoy!\" onclick=\"checkAll(!m_isCheckAll)\" style=\"cursor:pointer\" /></td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"8%\">拍卖区</td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"5%\">分类</td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"35%\">拍卖主题</td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"7%\">起拍价</td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"8%\">最高价</td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"8%\">卖主</td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"8%\">竞标/阅读</td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"8%\">结束时间</td>");
+        buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"15%\">操作</td>");
+        buffer.append("</tr></table>");
+        buffer.append("<script>var data =[];</script>");
+        out.print(buffer.toString());
+
+        for(int i = 0; i < bidList.size(); i++){
+            buffer.setLength(0);
+            Map map = (Map)bidList.get(i);
+            int auctionArea       = StringUtils.intVal(map.get("auctionArea"));
+            String category       = StringUtils.strVal(map.get("catId"));
+            String itemId         = StringUtils.strVal(map.get("itemId"));
+            String itemName       = StringUtils.strVal(map.get("itemName"));
+            String itemName_hl    = StringUtils.strVal(map.get("itemName_hl"));
+            String itemDesc       = StringUtils.strVal(map.get("description"));
+            double beginPrice     = StringUtils.doubleVal(map.get("beginPrice"));
+            double maxPrice       = StringUtils.doubleVal(map.get("maxPrice"));
+            String userId         = StringUtils.strVal(map.get("userId"));
+            String nickname       = StringUtils.strVal(map.get("nickname"));
+            String bidNum         = StringUtils.strVal(map.get("bidNum"));
+            String viewedNum      = StringUtils.strVal(map.get("viewedNum"));
+            String endTime        = StringUtils.strVal(map.get("endTime")).substring(0, 10);
+            String sourceTable    = StringUtils.strVal(map.get("sourceTable"));
+
+            StringBuffer fields = new StringBuffer();
+            fields.append(userId+" \n");
+            fields.append(itemId+" \n");
+            fields.append(nickname+" \n");
+            fields.append(itemName+" \n");
+            fields.append(sourceTable+" \n");
+            String itemInfo = StringUtils.urlencode(fields.toString());
+
+            buffer.append("<script>data["+i+"]='"+itemInfo+"';</script>");
+            buffer.append("<table width=\"98%\" bgcolor=\"#FFFFFF\" align=\"center\" border=\"0\" cellspacing=\"1\" cellpadding=\"0\">");
+            buffer.append("<tr height=\"30\" bgcolor=\""+((i % 2 == 0)?"#EFEFEF":"#ffffff")+"\" align=\"center\" >");
+            buffer.append("<td width=\"3%\"><input type=\"checkbox\" name=\"itemInfo[]\" value=\""+itemInfo+"\" /></td>");
+            buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"8%\" >"+getAuctionArea(auctionArea)+"</td>");
+            buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"5%\" >"+getBidCategory(category)+"</td>");
+            buffer.append("<td align=\"left\" style=\"color:#000000;font-size:14px;padding:0px 2px 0px 2px;\" width=\"35%\"><a href=\"http://www.kongfz.cn/"+itemId+"\" target=\"_blank\" style=\"color:#100EB0;font-size:14px;\" title=\""+itemDesc+"\">"+itemName_hl+"</a></td>");
+            buffer.append("<td align=\"right\" style=\"color:#000000;font-size:14px;\" width=\"7%\">"+beginPrice+"元</td>");
+            buffer.append("<td align=\"right\" width=\"8%\" style=\"font-size:14px\">"+(maxPrice==0?"无":"<span style=\"color:#FF0000;font-size:14px\">"+maxPrice+"</span>(元)")+"</td>");
+            buffer.append("<td align=\"left\" style=\"color:#000000;font-size:14px;padding:0px 2px 0px 2px;word-break:break-all;\" width=\"8%\"><a href=\"http://user.kongfz.com/member/view_member_info.php?memberId="+userId+"\" target=\"_blank\" style=\"font-size:14px;\">"+nickname+"</a></td>");
+            buffer.append("<td align=\"right\" style=\"color:#000000;font-size:14px;\" width=\"8%\">"+(bidNum + "/" +viewedNum)+"</td>");
+            buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"8%\">"+(endTime)+"</td>");
+            buffer.append("<td style=\"color:#000000;font-size:14px;\" width=\"15%\">");      
+            //buffer.append("<a href=\"http://search.kongfz.com/auction.jsp?query=" +URLEncoder.encode(itemName, "utf-8") + "&sale=2&category=\" target=\"_BLANK\">在线</a> ");
+            buffer.append("<a href=\"http://search.kongfz.com" +toHexString(itemName) + "\" target=\"_BLANK\">在线</a> ");
+            buffer.append("<a href='javascript:searchFromLog(\"/admin/new_sphinx/new_sphinx_doc_base_manage.jsp\",\""+itemName+"\");'>已审核</a> <br />");
+            buffer.append("</td>");
+            buffer.append("</tr></table>");
+            out.print(buffer.toString());
+        }
+    }
+%>
+<%
+    /****************************************************************************
+     * 设置页面中使用UTF-8编码
+     ****************************************************************************/
+    request.setCharacterEncoding("UTF-8");
+    response.setCharacterEncoding("UTF-8");
+
+    /****************************************************************************
+     * 验证用户登录状态和管理权限
+     ****************************************************************************/
+    MemcachedSession MemSession = new MemcachedSession(session, request, response, out, false);
+    // 从Session中取得管理员的姓名，并记录之。
+    String adminRealName = MemSession.get("adminRealName");
+
+    String logon_result = "";
+    String username = MemSession.get("adminName");//用于网站管理员登录
+
+    if(!MemSession.isLogin("admin")){
+        response.sendRedirect("index.jsp");
+        return;
+    }
+
+    //判断管理员权限
+    //String[] permission = new String[]{"manageIndex", "manAuctioneer"};
+    String permission = "auctionManage";
+    if(!MemSession.hasPermission(permission)){
+        out.write("您无权限使用此页面。");
+        return;
+    }
+
+    /****************************************************************************
+     * 接收页面请求参数
+     ****************************************************************************/
+
+    //动作类型
+    String act = StringUtils.strVal(request.getParameter("act"));
+    if("".equals(act)){act="search";}
+
+    //任务类型
+    String task = StringUtils.strVal(request.getParameter("task"));
+    String docType = StringUtils.strVal(request.getParameter("docType"));
+
+    // 关键词
+    String bid_keywords = StringUtils.strVal(request.getParameter("query"));
+    bid_keywords = filterKeywords(bid_keywords);
+
+    //搜索类型：full-text, itemName, nickname, author
+    int search_type = StringUtils.intVal(request.getParameter("type"));
+
+    // 类别
+    String category = StringUtils.strVal(request.getParameter("category"));
+
+    // 排序类型
+    int sort_type = StringUtils.intVal(request.getParameter("sorttype"));
+
+    // 当前页
+    int current_page = StringUtils.intVal(request.getParameter("page"));
+
+
+    /****************************************************************************
+     * 调用远程服务接口
+     ****************************************************************************/
+    ServiceInterface server = null;
+    String serverStatus = "";
+    List<Map> documents = new ArrayList();
+    String currentPage = "0";
+    String bidTotal = "0";
+    String pageTotal = "0";
+    String searchTime = "0";
+
+    try{
+        //取得远程服务器接口实例
+        server = (ServiceInterface)Naming.lookup("rmi://192.168.1.105:9101/AuctionSearchService");
+    }catch(Exception ex){
+        server = null;
+    }
+    /*******************************************************************************
+     * 请求远程服务：建立索引、查询索引、删除索引
+     *******************************************************************************/
+    if(null != server){
+
+        //删除索引服务
+        if(act != null && act.equals("delete")){
+            //要删除的图书信息列表
+            String[] itemInfoArray = request.getParameterValues("itemInfo[]");
+            List<Map<String, Object>> itemInfoList = getViolativeBidList(itemInfoArray);
+            HashMap parameters = new HashMap();
+            parameters.put("task", task);
+            parameters.put("docType", docType);//选择业务模块
+            parameters.put("itemInfoList", itemInfoList);
+            parameters.put("adminRealName", adminRealName);
+
+            //删除图书
+            Map resultSet = null;
+            try{
+                resultSet = server.work("DeleteBatchIndex", parameters);
+            }catch(Exception ex){
+                ex.printStackTrace();
+                serverStatus="服务器异常：调用远程服务器删除失败。";
+            }
+
+            //处理结果
+            String result = "";
+            if(null != resultSet){
+                //处理查询结果
+                result = StringUtils.strVal(resultSet.get("status"));
+            }else{
+                serverStatus = "服务器异常：未知错误。";
+            }
+            
+            if ("0".equals(result)) {
+                act = "search";
+            } else if ("1".equals(result)) {
+                serverStatus = "服务器异常：未指定的删除拍品索引操作。";
+            } else if ("2".equals(result)) {
+                serverStatus = "服务器异常：正在建立索引，不能执行删除操作。";
+            }
+            else {
+                serverStatus = "服务器异常：未知错误。";
+            }
+            //其它错误，略
+
+        }
+
+        //查询索引服务
+        if(act != null && act.equals("search")){
+
+            HashMap parameters = new HashMap();
+            parameters.put("docType", docType);//选择业务模块
+            parameters.put("category", category);
+            parameters.put("sortType", String.valueOf(sort_type));
+
+            if(search_type == 0){
+                parameters.put("keywords", bid_keywords);
+            }else if(search_type == 1){
+                parameters.put("itemName", bid_keywords);
+            }else if(search_type == 2){
+                parameters.put("nickname", bid_keywords);
+            }else if(search_type == 3){
+                parameters.put("author", bid_keywords);
+            }
+
+            //查询类配置参数
+            parameters.put("currentPage", String.valueOf(current_page));
+            parameters.put("paginationSize", "100");
+            //parameters.put("sortDefault", );
+            //parameters.put("maxClauseCount", );
+
+            //调用远程查询接口
+            Map resultSet = null;
+            try{
+                resultSet = server.work("AdminSearch", parameters);
+            }catch(Exception ex){
+                ex.printStackTrace();
+                serverStatus="服务器异常：调用远程服务器查询失败。";
+            }
+            
+            String result = "";
+            if(null != resultSet){
+                //处理查询结果
+                result = StringUtils.strVal(resultSet.get("status"));
+                documents = (List) resultSet.get("documents");
+            }else{
+                serverStatus = "服务器异常：未知错误。";
+            }
+
+            if("0".equals(result)){
+                //将查询到的拍品列表输出
+                currentPage = StringUtils.strVal(resultSet.get("currentPage"));
+                bidTotal    = StringUtils.strVal(resultSet.get("hitsCount"));
+                pageTotal   = StringUtils.strVal(resultSet.get("pageCount"));
+                searchTime  = StringUtils.strVal(resultSet.get("searchTime"));
+                serverStatus = "ok";
+            }else if("1".equals(result)){
+                serverStatus = "服务器异常：索引为空，或未建立，或正在建立索引。";
+            }else if("2".equals(result)){
+                serverStatus = "服务器异常：查询受阻，正在将磁盘索引载入内存。";
+            }else if("3".equals(result)){
+                serverStatus = "服务器异常：查询过程中出现错误。";
+            }else{
+                serverStatus = "服务器异常：未知错误。";
+            }
+        }
+        //
+    }else{
+        serverStatus = "请求远程服务器出现异常，可能是远程服务器未启动，请与系统管理员联系。";
+    }
+    //System.out.println(serverStatus);
+    String htmlCategoryOptions = buildCategoryOptions(category);
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>管理拍品索引</title>
+<style>
+    body{ margin:0; padding:0; text-align:center}
+    form{margin:0px;}
+    a{ text-decoration:none;}
+    a:hover{ text-decoration:underline; color:red;}
+    #Sort{
+    width:99%; font-size:14px; line-height:30px; background-color:#e1eaf6; border:1px solid #adc1dc; margin:0 auto;  height:28px; text-align:left; padding-top:2px;
+    }
+    .searchSub{ background:url(./images/bg_searchsub.gif); border:1px solid #d17528; width:80px; padding-top:2px; font-weight:bold; color:#fff;}
+    #Page td{ font-size:13px; line-height:200%;}
+    #List td{ font-size:13px; line-height:220%!important; line-height:150%;}
+    #List td a{ color:#0000ba; text-decoration:none;}
+    #List td a:hover{ color:red; text-decoration:underline;}
+
+    #search{ width:99%; height:62px; border-bottom:1px solid #adc1dc; margin:0 auto 8px auto; background:url(./images/bg_search.gif); font-size:12px;}
+
+    .search_result{
+    width:99%;
+    text-align:left;
+    font-size:13px;
+    }
+
+    .copyright{
+    font-size:12px;
+    width:99%;
+    border:1px solid #EFF2FA;
+    padding-top:20px;
+    padding-bottom:20px;
+    text-align:center;
+    background-color:#EFF2FA;
+    }
+    .result_message{
+    font-size:12px;
+    border:0px solid #003300;
+    height:200px;
+    width:970px;
+    text-align:center;
+    }
+    .result_message img{
+    margin:20px 20px 20px 200px;
+    }
+    .result_message label{
+    color:#FF6F02;
+    }
+    .float_left{
+    float:left;
+    }
+
+    .page_navigation{
+
+    }
+    .page_navigation a{
+    margin:2px;
+    padding:2px;
+    text-decoration:none;
+    color:#100EB0;
+    font-size:14px;
+    }
+    .page_navigation a:hover{
+    text-decoration:underline;
+    color:#FF0000;
+    font-size:14px;
+    }
+    .page_navigation label{
+    margin:2px;
+    padding:2px;
+    }
+    .page_navigation b{
+    color:#FF0000;
+    margin:2px;
+    padding:2px;
+    font-size:14px;
+    }
+
+    .page_navigation input{
+    border:1px solid #ADC1DC;
+    }
+
+    .goto_button{
+    height:20px;
+    width:36px;
+    border:1px solid #ADC1DC;
+    color:#006E0B;
+    padding:2px;
+    background-color:#FFFFFF;
+    background-image:url(images/bg_sort.gif);
+    cursor:pointer;
+    }
+
+
+    .belivePress{
+    display:none;
+    position:absolute;
+    padding:2px;
+    width:120px; 
+    height:auto; 
+    background-color:#C7D5E9;
+    border:1px solid #ADC1DC;
+    }
+    .belivePress a{
+    float:left;
+    padding:2px;
+    width:100%;
+    color:#000000;
+    text-align:left;
+    font-size:14px;
+    }
+    .belivePress a:hover{
+    background-color:#FDDA96;
+    color:#FF0000;
+    }
+    .distrustKeywords{
+    display:none;
+    position:absolute;
+    padding:2px;
+    width:120px; 
+    height:auto; 
+    background-color:#C7D5E9;
+    border:1px solid #ADC1DC;
+    }
+    .distrustKeywords a{
+    float:left;
+    padding:2px;
+    width:100%;
+    color:#000000;
+    text-align:left;
+    font-size:14px;
+    }
+    .distrustKeywords a:hover{
+    background-color:#FDDA96;
+    color:#FF0000;
+    }
+
+    /* 主菜单面板 */
+    .mainMenuPanel{
+    margin:auto;
+    padding:4px 4px 0px 4px;
+    height:18px; 
+    width:auto; 
+    text-align:left;
+    font-size:12px; 
+    border-bottom:1px solid #E6E6E6; 
+    background-color:#ECECEC;
+    }
+    .menuItemSel{
+    color:#FF0000;
+    font-weight:bold;
+    }
+
+    /* 业务模块面板 */
+    .modulePanel{
+    margin:2px 0px 0px 0px; 
+    padding-top:2px;
+    width:99%; height:34px; 
+    border-bottom:1px solid #adc1dc; 
+    font-size:14px; 
+    line-height:30px; 
+    text-align:left; 
+    background-color:#DFE8F5; 
+    }
+    .modulePanelItem{
+    float:left;
+    border:1px dashed #F6881B;
+    margin-left:2px;
+    padding:0px 4px 0px 4px;
+    color:#000000;
+    text-decoration:none;
+    }
+    .modulePanelItem:hover {
+    color:white;
+    text-decoration:none;
+    background-color:#F6881B;
+    }
+    .modulePanelItemSel{
+    float:left;
+    border:1px dashed #F6881B;
+    margin-left:2px;
+    padding:0px 4px 0px 4px;
+    color:#FFFFFF;
+    font-weight:bold;
+    text-decoration:none;
+    background-color:#F6881B;
+    }
+    .modulePanelItemSel:hover {
+    color:#FFFFFF;
+    text-decoration:none;
+    background-color:#F6881B;
+    }
+</style>
+
+<SCRIPT LANGUAGE="JavaScript">
+    function $search(id){return document.getElementById(id);}
+    function findPos(obj) {
+        var curleft = curtop = 0;
+        if (obj.offsetParent) {
+            curleft = obj.offsetLeft;
+            curtop = obj.offsetTop;
+            while (obj = obj.offsetParent) {
+                curleft += obj.offsetLeft;
+                curtop += obj.offsetTop;
+            }
+        }
+        return [curleft,curtop];
+    }
+
+        /**
+     * 添加事件监听
+     */
+    function addEventListener(obj, eventName, callback)
+    {
+        if(document.all){
+            obj.attachEvent("on" + eventName,callback);
+        }else{
+            obj.addEventListener(eventName,callback,true); 
+        }
+    }
+    
+    /**
+     * 取消事件监听
+     */
+    function removeEventListener(obj, eventName, callback)
+    {
+        if(document.all){
+            obj.detachEvent("on" + eventName, callback);
+        }else{
+            obj.removeEventListener(eventName, callback, true); 
+        }
+    }
+
+    function go(page){
+    $search("page").value = page;
+    $search("frmSearch").submit();
+    }
+
+    function setSort(type){
+    $search("sorttype").value = type;
+    go(1);
+    }
+
+    function gotopage(){
+    var pages = document.getElementsByName("gopage");
+    var page = pages[0].value!=""? pages[0].value : pages[1].value;
+    page = page.replace(/ /g,"");
+    go(page);
+    }
+
+    function initSearchForm(){
+    $search('category').value=0;
+    $search('sorttype').value=0;
+    }
+
+    var m_isCheckAll = false;
+    
+    function checkAll(value){
+        m_isCheckAll = value;
+        $search('smile').src='./images/'+(value?'cry.gif':'smile.gif');
+        var elements = document.getElementsByName('itemInfo[]');
+            for(var i=0; i < elements.length; i++){
+            elements[i].checked=value;
+        }
+    }
+
+
+    function deleteBid(itemInfo){
+        var elements = document.getElementsByName('itemInfo[]');
+
+        if(itemInfo != null){
+            for(var i=0; i < elements.length; i++){
+                elements[i].checked = (elements[i].value == itemInfo);
+            }
+        }
+
+        var unchecked = true;
+        for(var i=0; i < elements.length; i++){
+            if(elements[i].checked){unchecked = false;}
+        }
+        if(unchecked){
+            alert("请选择要操作的项目，再执行删除操作！");return;
+        }
+        if((itemInfo == null) && (!confirm("是否删除所选项目？"))){return;}
+        
+        $search('act').value = 'delete';
+        $search('task').value = 'delete';
+        $search('frmSearch').submit();
+    }
+
+
+    /**
+     * 显示可疑关键字列表
+     */
+    function showDistrustKeywords(isVisible){
+        function hideDistrustKeywordsPanel(){showDistrustKeywords(false);}
+        var panel = $search('distrustKeywordsPanel');
+        if(!isVisible){
+            panel.style.display="none";
+            removeEventListener(document.documentElement, 'click', hideDistrustKeywordsPanel);
+            return;
+        }else{
+            panel.style.display="block";
+            var pos = findPos(panel.parentNode);
+            panel.style.left=pos[0]+'px';
+            panel.style.top=(pos[1]+15)+'px';
+            addEventListener(document.documentElement, 'click', hideDistrustKeywordsPanel);
+        }
+    }
+    
+    /**
+     * 显示可信任出版社列表
+     */
+    function showBelivePress(isVisible){
+        function hideBelivePressPanel(){showBelivePress(false);}
+        var panel = $search('belivePressPanel');
+        if(!isVisible){
+            panel.style.display="none";
+            removeEventListener(document.documentElement, 'click', hideBelivePressPanel);
+            return;
+        }else{
+            panel.style.display="block";
+            var pos = findPos(panel.parentNode);
+            panel.style.left=(pos[0]-20)+'px';
+            panel.style.top=(pos[1]+15)+'px';
+            addEventListener(document.documentElement, 'click', hideBelivePressPanel);
+        }
+    }
+    
+    /**
+    * 装入辅助数据
+    */
+    function loadAssistantData(){
+        //装入可疑关键字列表
+        if(m_distrustKeywords){
+            var keywordsHtml = [];
+            for(var i=0; i < m_distrustKeywords.length; i++){
+                keywordsHtml.push('<div><a href="javascript:quickQuery(\''+m_distrustKeywords[i].keywords+'\')" title="'+m_distrustKeywords[i].keywords+'">'+m_distrustKeywords[i].name+'</a></div>');
+            }
+            $search('distrustKeywordsPanel').innerHTML = keywordsHtml.join('');
+        }
+        //装入可信任出版社列表
+        if(m_belivePress){
+            var pressHtml = [];
+            for(var i=0; i < m_belivePress.length; i++){
+                pressHtml.push('<div><a href="javascript:quickQuery(\''+m_belivePress[i].name+'\')" title="'+m_belivePress[i].name+'">'+m_belivePress[i].name+'</a></div>');
+            }
+            $search('belivePressPanel').innerHTML=pressHtml.join('');
+        }
+    
+    }
+
+    function quickQuery(keywords){
+        $search('keywords').value = keywords;
+        $search('frmSearch').submit();
+    }
+
+    /**
+     * 清空查询条件
+     */
+    function clearQueryCondition()
+    {
+        var types = document.getElementsByName("type");
+        types[0].checked = true;
+        $search("keywords").value="";
+        $search("category").value="";
+    }
+
+    function selectVerifyModule(module) {
+        var map = {
+            "0":"", 
+            "1":"EndDoc",
+            "2":"FreshDoc"
+        };
+        $search('docType').value = map[module];
+        $search('sorttype').value=0;
+        $search("keywords").value="";
+        $search('category').value=0;
+        //$search("type").value="0";
+        var types = document.getElementsByName("type");
+        types[0].checked = true;
+        $search("page").value="";
+        $search('frmSearch').submit();
+    }
+
+    function setModulePanelHighlight(module) {
+        var map = {
+            "":0, 
+            "EndDoc":1,
+            "FreshDoc":2
+        };
+        var items = $search("modulePanel").getElementsByTagName("A");
+        items[map[module]].className="modulePanelItemSel";
+    }
+    
+    
+     function searchFromLog(url, itemName){
+    	var postForm = document.createElement("form");//表单对象   
+        postForm.method="post" ;   
+        postForm.action =  url;   
+        postForm.target="_blank";
+        //查询关键词
+        var queryInput = document.createElement("input") ;
+        queryInput.setAttribute("name", "query") ;   
+        queryInput.setAttribute("value", itemName);   
+        postForm.appendChild(queryInput) ;
+        //执行的操作
+        var actInput = document.createElement("input"); 
+        actInput.setAttribute("name","act"); 
+        actInput.setAttribute("value", "search");
+        postForm.appendChild(actInput);
+        //违禁时，销售为全部
+        var actInput = document.createElement("input"); 
+        actInput.setAttribute("name","sale"); 
+        actInput.setAttribute("value", "2"); 
+        postForm.appendChild(actInput); 
+         
+        document.body.appendChild(postForm) ;   
+        postForm.submit() ;   
+        document.body.removeChild(postForm) ; 
+        return;
+    }
+
+</SCRIPT>
+<script language="javascript" type="text/javascript" src="distrust_keywords.js"></script>
+<script language="javascript" type="text/javascript" src="belive_press.js"></script>
+</HEAD>
+
+<BODY>
+<div class="mainMenuPanel">
+<a href="index.jsp">主菜单</a>
+<a href="auction_manage.jsp" class="menuItemSel">管理拍品索引</a>
+<a href="forum_manage.jsp">管理论坛索引</a>
+</div>
+
+<div class="modulePanel" id="modulePanel">
+<a href="javascript:selectVerifyModule(0)" class="modulePanelItem">管理全部拍品</a>
+<a href="javascript:selectVerifyModule(1)" class="modulePanelItem">管理历史拍品</a>
+<a href="javascript:selectVerifyModule(2)" class="modulePanelItem">管理正在拍卖拍品</a>
+</div>
+<script>setModulePanelHighlight("<%=docType%>");</script>
+
+
+<form name="frmSearch" id="frmSearch" method="post" action="" >
+<div id="search">
+<table width="96%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td width="26%" rowspan="2" align="left"><img src=".././images/logo_com.gif" alt="logo" width="167" height="60" /></td>
+    <td height="26" align="left" valign="bottom">
+        <INPUT maxLength=2048 size=41 value="<%=bid_keywords%>" name="query" id="keywords"/> 
+        <img src="images/clear_input.gif" style="cursor:pointer" title="清空输入框" onclick="clearQueryCondition();" />
+        <input type="submit" value="搜 索" class="searchSub" onClick="initSearchForm()" />
+        <INPUT type="hidden" name="page" id="page" value="<%=currentPage%>" /> 
+        <input type="hidden" name="sorttype" id="sorttype" value="<%=sort_type%>" />
+        <input type="hidden" id="docType" name="docType" value="<%=docType%>" />
+        <input type="hidden" id="act" name="act" value="" />
+        <input type="hidden" id="task" name="task" value="none" />
+        </td>
+  </tr>
+  <tr>
+    <td width="36%" align="left" valign="top">
+    <label><INPUT type="radio" value="0" name="type" />全文</label>
+    <label><INPUT type="radio" value="1" name="type" />拍卖主题</label>
+    <label><INPUT type="radio" value="2" name="type" />拍主昵称</label>
+    <label><INPUT type="radio" value="3" name="type" />拍品作者</label>
+    <script type="text/javascript">
+    var types = document.getElementsByName("type");
+    types[<%=search_type%>].checked = true;
+    </script>
+    </td>
+
+    <td height="26" align="right" valign="bottom">
+    <span>
+<!-- 
+    <a href="javascript:showDistrustKeywords(true)">选择可疑关键字</a>
+    <div id="distrustKeywordsPanel" class="distrustKeywords" style="display:none" ></div>
+ -->
+    <span>&nbsp;
+<!--     <span><a href="javascript:showBelivePress(true)">选择可信任出版社</a>
+    <div id="belivePressPanel" class="belivePress" style="display:none" ></div>
+    </span>
+ -->
+    <script type="text/javascript">loadAssistantData();</script>
+    </td>
+
+  </tr>
+</table>
+</div>
+<div id="Sort">&nbsp;&nbsp;&nbsp;
+	<!-- 相关配置方式，查看 admin/keywords/choiceKeywords.jsp -->
+    <a href="javascript:void(0);" name="search_choice_keywords_dom" 
+	closeFn="quickQuery" show="search_choice_keywords_show_infomation_dom" 
+	defaultLevel="" searchType="auction" backgroungFnType="key">选择可疑关键字</a>
+	<span id="search_choice_keywords_show_infomation_dom"></span>
+</div>
+
+<div id="Sort">　在搜索结果中按 拍卖类别 筛选：
+<SELECT name="category" id="category" onChange="go(1)"><%=htmlCategoryOptions%></SELECT>
+<script type="text/javascript">
+$search("category").value = "<%=category%>";
+</script>
+搜索结果排序：
+<font color="#006e0b">
+[上拍时间<span class="STYLE2">
+<a href="javascript:setSort(1)">↑</a>
+<a href="javascript:setSort(2)">↓</a></span>]
+[最高价<span class="STYLE2">
+<a href="javascript:setSort(3)">↑</a>
+<a href="javascript:setSort(4)">↓</a></span>]
+[竞标<span class="STYLE2">
+<a href="javascript:setSort(5)">↑</a>
+<a href="javascript:setSort(6)">↓</a></span>]
+[阅读<span class="STYLE2">
+<a href="javascript:setSort(7)">↑</a>
+<a href="javascript:setSort(8)">↓</a></span>]
+</font>
+</div>
+
+<%
+//查询结果为空的情况
+if("ok".equals(serverStatus) && "0".equals(bidTotal)){
+//----
+%>
+        <div class="result_message">
+        <img class="float_left" src="./images/none.gif" />
+        <div class="float_left">
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>很抱歉！在 <label>孔夫子旧书网</label> 中没有找到符合 <label><%=bid_keywords%></label> 的拍卖。</div>
+        </div>
+        </div>
+<%
+//----
+}else if("ok".equals(serverStatus) && !"0".equals(bidTotal)){
+    //审核工具栏
+    String verifyToolbar_contents = "";
+    verifyToolbar_contents = "<div align=\"left\" style=\"padding:5px 2px 0px 2px;width:98%;font-size:13px;\">"
+    +"<input type=\"button\" value=\"全选\" onclick=\"checkAll(true)\" />"
+    +"<input type=\"button\" value=\"全否\" onclick=\"checkAll(false)\" />"
+    +"　　　　　　　"
+    +"<input type=\"button\" value=\"删除所选拍品\" onclick=\"deleteBid()\" />"
+    +"</div>";
+    out.print(verifyToolbar_contents);
+//----
+%>
+<!--页码导航开始-->
+<table align="center" border=0  width="98%" id="Page">
+<tr><td height="28" align="left">
+<% 
+    String strPageNavigation = "";
+    strPageNavigation = "<font color='#666666'><b>查询的拍品总数：</b></font>" + bidTotal + "&nbsp;";
+    strPageNavigation+="共<font color='#0000ff'>" + pageTotal + "</font>页&nbsp;&nbsp;";
+    strPageNavigation+="现为<font color=red>" + currentPage + "</font>页&nbsp;";
+
+    int page_count;
+    try{
+        page_count = Integer.parseInt(pageTotal);
+    }catch(Exception ex){
+        page_count = 0;
+    }
+
+    //int current_page;
+    try{
+        current_page = Integer.parseInt(currentPage);
+    }catch(Exception ex){
+        current_page = 0;
+    }
+
+    strPageNavigation+=displayNavigation(page_count, current_page);
+    strPageNavigation+="<label>第<input type=\"text\" size=\"3\" maxlength=\"4\" value=\"\" name=\"gopage\"  onkeydown=\"if(event.keyCode==13){gotopage();}\" />页&nbsp;<input type=\"button\" onclick=\"gotopage()\" value=\"转到\" class=\"goto_button\" /></label>";
+
+    out.print(strPageNavigation);
+    out.print("&nbsp;&nbsp;搜索用时 "+searchTime+" 秒&nbsp;&nbsp;");
+%>
+</td></tr>
+</table>
+
+<!--页码导航结束-->
+<div>
+<%
+    try{
+        displayBidsTableForDelete(documents, out);
+    }catch(Exception ex){
+        ex.printStackTrace();
+    }
+%>
+</div>
+<!--页码导航开始-->
+<table align="center" border=0  width="98%" id="Page">
+<tr><td height="28" align="left">
+<% 
+    out.print(strPageNavigation);
+%>
+</td></tr>
+</table>
+</form>
+
+<!--页码导航结束-->
+<%
+//----
+out.print(verifyToolbar_contents);
+}else{
+//----
+//系统异常的情况
+%>
+    <div class="result_message">
+    <div>&nbsp;</div>
+    <div>&nbsp;</div>
+    <div>&nbsp;</div>
+    <div>系统维护中，暂时不能搜索，敬请谅解！</div>
+    <div><%=serverStatus%></div>
+    </div>
+<%
+//----
+}
+//-----
+%>
+
+<div class="copyright"><label>版权所有(C)2002-2013 孔夫子旧书网</label></div>
+</BODY>
+</HTML>

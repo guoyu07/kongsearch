@@ -1,0 +1,33 @@
+index <?=$INDEX?>_<?=$SHARD?>:<?=$PARENT?> {
+  type = rt
+  path = <?=$INDEXDIR?>/<?=$INDEX?>/<?=$INDEX?>_<?=$SHARD?><?=$EOL?>
+  rt_mem_limit = 10240M
+  
+  rt_field = _itemName
+  rt_field = _decade
+  rt_field = _comName
+
+  rt_attr_uint = pid
+  rt_attr_uint = userId
+  rt_attr_uint = comId
+  rt_attr_uint = cusId
+  rt_attr_uint = catId
+  rt_attr_uint = isHidden
+  rt_attr_uint = viewedNum
+  rt_attr_uint = speId
+  rt_attr_uint = beginTime
+  rt_attr_uint = beginTime2
+  rt_attr_uint = isdeleted
+
+  rt_attr_string = comName
+  rt_attr_string = comShortName
+  rt_attr_string = itemName
+  rt_attr_string = author
+  rt_attr_string = decade
+  rt_attr_string = bigImg
+  
+  rt_attr_float = beginPrice
+  rt_attr_float = beginRefPrice
+  rt_attr_float = endRefPrice
+  rt_attr_float = bargainPrice
+}

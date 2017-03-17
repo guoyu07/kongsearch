@@ -1,0 +1,17 @@
+#snippet index
+source snippet {
+  type = xmlpipe2
+  xmlpipe_command = cat <?=$INDEXDIR?>/snippet.xml
+  xmlpipe_fixup_utf8 = 1
+  xmlpipe_field = snippet
+  xmlpipe_attr_string = id
+}
+
+index snippet:<?=$PARENT?> {
+  source = snippet
+  path = <?=$INDEXDIR?>/snippet
+  stopwords = <?=$BASEDIR?>/etc/kfz_stopwords_snippet.txt
+  wordforms = 
+  ngram_len =  1
+  ngram_chars = U+3000..U+2FA1F
+}

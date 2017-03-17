@@ -1,0 +1,12 @@
+index <?=$INDEX?>_<?=$SHARD?>:<?=$PARENT?> {
+  type = rt
+  path = <?=$INDEXDIR?>/<?=$INDEX?>/<?=$INDEX?>_<?=$SHARD?><?=$EOL?>
+  rt_mem_limit = 10240M
+  
+  rt_field = word
+  rt_field = pinyin
+
+  rt_attr_uint = querynum
+  rt_attr_uint = isdeleted
+
+}

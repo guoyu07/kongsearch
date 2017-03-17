@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  Copyright 2004 The Apache Software Foundation
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+    version="2.4">
+
+
+    <display-name>Welcome to Tomcat</display-name>
+    <description>
+        Welcome to Tomcat
+    </description>
+
+    <!-- JSPC servlet mappings start -->
+    <!--<servlet>
+        <servlet-name>org.apache.jsp.index_jsp</servlet-name>
+        <servlet-class>org.apache.jsp.index_jsp</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>org.apache.jsp.index_jsp</servlet-name>
+        <url-pattern>/index.jsp</url-pattern>
+    </servlet-mapping>-->
+    <!-- JSPC servlet mappings end -->
+
+    <!-- SpiderFilter -->
+    <filter>
+        <filter-name>SpiderFilter</filter-name>
+        <filter-class>com.kongfz.search.service.web.SpiderFilter</filter-class>
+        <init-param>
+            <param-name>SpiderList</param-name>
+            <param-value>Sogou web spider|Sosospider</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+         <filter-name>SpiderFilter</filter-name>
+         <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- SearchService4SE -->
+    <servlet>
+        <servlet-name>SearchService4SE</servlet-name>
+        <servlet-class>com.kongfz.search.service.web.SearchService4SE</servlet-class>
+        <init-param>
+            <param-name>RMIServerConfig</param-name>
+            <param-value>/data/webroot/search/WEB-INF/web_service_rmi.conf</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SearchService4SE</servlet-name>
+        <url-pattern>/SearchService4SE</url-pattern>
+    </servlet-mapping>
+
+    <!-- RMI Proxy -->
+    <servlet>
+        <servlet-name>RMIServiceHttpProxy</servlet-name>
+        <servlet-class>com.kongfz.dev.rmi.RMIServiceHttpProxy</servlet-class>
+        <init-param>
+            <param-name>outputError</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>charset</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RMIServiceHttpProxy</servlet-name>
+        <url-pattern>/rmiproxy</url-pattern>
+    </servlet-mapping>
+
+    <!-- RMI Proxy 2-->
+    <servlet>
+        <servlet-name>RMIServiceHttpProxy2</servlet-name>
+        <servlet-class>com.kongfz.dev.rmi.RMIServiceHttpProxy2</servlet-class>
+        <init-param>
+            <param-name>outputError</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+            <param-name>charset</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>guarderInterval</param-name>
+            <param-value>60</param-value>
+        </init-param>
+        <init-param>
+            <param-name>RMIServiceConfig</param-name>
+            <param-value>/data/webroot/search/WEB-INF/rmi_service_config.conf</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RMIServiceHttpProxy2</servlet-name>
+        <url-pattern>/RmiProxyService</url-pattern>
+    </servlet-mapping>
+</web-app>

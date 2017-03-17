@@ -1,0 +1,287 @@
+孔网搜索指南
+  liuxingzhi@2014.3
+
+【服务器规划】
+  目前六台服务器：
+  tangseng qiaofeng sunwukong taishanglaojun yuebuqun  zhugekongming
+  其中：
+  tangseng qiaofeng 目前专用于老搜索和审核。
+  sunwukong taishanglaojun yuebuqun  zhugekongming 用于新搜索。
+
+【安装】
+  每一台搜索服务器都需要安装下面软件：
+(1)基本软件：
+  apt-get install -y libmysqlclient18 libmysqlclient-dev
+  apt-get install -y libexpat1 libexpat1-dev
+  apt-get install -y libboost-program-options-dev 
+  apt-get install -y libcloog-ppl0
+  libiconv   ./configure; make; make install
+  libevent-1.4.14b: ./configure;make;make install 
+  apt-get install -y libxml2 libxml2-dev libxml2-utils libpcre3 libpcre3-dev libncurses5 libncursesw5-dev libncurses5-dev libpng3 libfreetype6 libfreetype6-dev libjpeg-dev libpng12-dev libpng12-0 curl libcurl3 libcurl4-openssl-dev libmhash2 libmhash-dev libssl-dev libmcrypt4 libmcrypt-dev zlib1g-dev autoconf libbz2-dev python-beautifulsoup  python-dev python-minimal uuid-dev libossp-uuid16
+ 
+(2)php-5.3.22
+   ./configure  --prefix=/opt/app/php --with-config-file-path=/opt/app/php/etc --enable-fpm --with-mysql=/usr --with-mysqli=/usr/bin/mysql_config --with-pdo-mysql=/usr --with-mysql-sock --with-gd --enable-gd-native-ttf --with-jpeg-dir --with-png-dir --with-freetype-dir --enable-xml --with-libxml-dir --enable-bcmath --enable-session --enable-soap --enable-dom --enable-sockets --enable-mbstring --enable-zip --with-zlib --with-curl --with-iconv-dir=/usr/local --with-mcrypt --disable-debug --enable-pcntl --with-mhash --enable-exif
+   make ZEND_EXTRA_LIBS='-liconv'
+   make install 
+  
+(3)sphinx-2.2.1
+  ./configure --prefix=/opt/app/sphinx --enable-id64  --with-libexpat  --with-iconv  	
+  修改src/makefile文件里的LIBS变量，添加-liconv (在有iconv库的环境下编译时链接错误，找不到iconv库)
+  sed -i -e '/^LIBS =/s/$/ -liconv/' src/Makefile
+  make
+  make install
+
+(4)分词软件：scws-1.2.2
+  ./configure --prefix=/opt/app/scws
+  make; make install
+  
+  安装scws php扩展模块
+  cd phpext/
+  phpize 
+  ./configure --with-scws=/opt/app/scws
+  make 
+  make install
+  
+  在 php.ini 中加入以下几行
+  [scws]
+  extension = scws.so
+  scws.default.charset = utf8
+  scws.default.fpath = /opt/app/scws/etc
+  
+  删除下面文件：
+  sudo rm -f /opt/app/scws/etc/rules*
+  
+(5)gearmand-0.25
+   debian7安装 gearmand-0.25时下列文件添加#include <unistd.h> 头文件即可。
+   util/instance.cc 
+   util/pidfile.cc
+   util/logfile.cc
+   命令如下：
+    sed -i '50a#include <unistd.h>' util/instance.cc
+    sed -i '50a#include <unistd.h>' util/logfile.cc
+    sed -i '50a#include <unistd.h>' util/pidfile.cc
+    sed -i '25a#define HAVE_EVENT_BASE_NEW' libgearman-server/gearmand.cc
+    ./configure;make;make install 
+  
+    安装gearman的php扩展模块gearman-0.8.0
+    phpize;./configure;make;make install
+    设置php.ini: extension=gearman.so
+    
+(6)memcached
+  memcached-1.4.15:    ./configure; make; make install
+  apt-get install -y libmemcached-dev libmemcached-tools libmemcached10 libmemcachedprotocol0 libmemcachedutil2
+  安装memcached扩展模块memcached-2.1.0: phpize; ./configure; make; make install 
+  设置php.ini: extension=memcached.so
+  cat memcached.ini  >> /opt/app/php/etc/php.ini
+  
+(7)redis-2.6.12
+    make
+    make install
+    mkdir -p /data/redis
+    mkdir -p /data/redis/data
+    mkdir -p /data/redis/etc
+    mkdir -p /data/redis/logs
+    cp redis.conf sentinel.conf /data/redis/etc/
+    
+    安装redis php扩展模块 redis-2.2.3  
+    phpize;./configure;make;make install
+    设置php.ini: extension=redis.so        
+
+(8)安装MySQL
+   Percona-Server-5.5.24-rel26.0-256.Linux.x86_64.tar.gz 直接解压到/opt/app/mysql即可。
+
+(9)孔网搜索kongsearch
+   安装kongsearch到搜索服务器/opt/app/kongsearch
+   
+(10) 设置环境变量PATH
+    /etc/profile 添加下面内容：
+    export PATH=$PATH:/usr/local/sbin:/opt/app/php/bin:/opt/app/sphinx/bin:/opt/app/scws/bin:/opt/app/mysql/bin
+    . /etc/profile
+    export SPHINX_NODE=服务器名的首字母缩写，比如tslj ts zgkm swk qf ybq
+    export SPHINX_ENV=local/neibu/online
+    
+  创建相关目录和文件
+    mkdir -p /data/index
+    mkdir -p /data/logs
+    touch /data/index/snippet.xml
+    
+  搜索服务器之间建立root用户的ssh互信关系
+   --- 目前运维已经建立好了。
+   
+  修改/etc/hosts，增加下面内容：
+  192.168.1.83 zhugekongming
+  192.168.1.239 yuebuqun
+  192.168.1.132 tangseng
+  192.168.1.105 qiaofeng
+  192.168.1.137 taishanglaojun
+  192.168.1.124 sunwukong
+    
+  注意：
+    (1)taishanglaojun zhugekongming上安装的gearmand目前不能使用，原因未知。
+    (2)qiaofeng、tangseng上的安装的memcached目前不能使用，原因未知。 
+    (3)可能是libmemcached和gearmand冲突。
+  
+【部署】
+(1) SearchDB (taishanglaojun服务器)
+     创建用户sphinx，并授予权限。
+     create user 'sphinx'@'192.168.1.%' identified by 'sphinx123321';
+     GRANT ALL ON search.* TO 'sphinx'@'192.168.1.%';
+     create user 'sphinx'@'taishanglaojun' identified by 'sphinx123321';
+     GRANT ALL ON search.* TO 'sphinx'@'taishanglaojun';
+     运行MySQL，当做searchDB。
+(2) Reids (taishanglaojun服务器)
+     运行redis，用于cache、队列、日志功能。
+     启动命令：redis-server /opt/app/kongsearch/conf/redis-search.conf  
+(3) SearchCache，搜索缓存目前有6个节点，每个节点8G，分布如下：
+      memcached -d -u nobody -m 8192 -c 10240  -p 21211 -l 192.168.1.137  (taishanglaojun服务器)
+      memcached -d -u nobody -m 8192 -c 10240  -p 21211 -l 192.168.1.68   (taishanglaojun服务器)
+      memcached -d -u nobody -m 8192 -c 10240  -p 21211 -l 192.168.1.124  (sunwukong服务器)
+      memcached -d -u nobody -m 8192 -c 10240  -p 21211 -l 192.168.1.66   (sunwukong服务器)
+      memcached -d -u nobody -m 8192 -c 10240  -p 21211 -l 192.168.1.83   (zhugekongming服务器)
+      memcached -d -u nobody -m 8192 -c 10240  -p 21211 -l 192.168.1.108   (zhugekongming服务器)
+(4) gearmand
+      /opt/app/gearman/sbin/gearmand -L 192.168.1.132 -p 4730 -d -l /data/logs/gearmand.log  (tangseng服务器)
+      /opt/app/gearman/sbin/gearmand -L 192.168.1.124 -p 4730 -d -l /data/logs/gearmand.log  (sunwukong服务器)
+            /usr/local/sbin/gearmand -L 192.168.1.239 -p 4730 -d -l /data/logs/gearmand.log  (yuebuqun服务器)
+(5) indexupdate
+     sh indexupdate.sh start  (zhugekongming服务器)
+     sh indexupdate.sh start  (yuebuqun服务器)
+(6) 搜索服务的部署，不同类型的搜索服务部署不一样，可以根据kongsearch/etc/INDEX_distindex.ini来了解。
+(7) 采集服务器
+    目前所有类型的索引数据采集都在sunwukong和taishanglaojun进行。
+(8) crontab设置：查询日志轮询、索引更新服务重启、更新失败消息重试。
+    示例如下：
+    1 23 * * * root sh /opt/app/kongsearch/bin/indexupdate.sh restart > /dev/null 2>&1            每天晚上重启一次索引更新服务（内存泄露问题）
+    1 0 * * * root sh /opt/app/kongsearch/bin/rotatequerylog.sh /data/logs/{{INDEX}}_search       每天轮转一次INDEX查询日志
+    30 */1 * * * root sh /opt/app/kongsearch/bin/indexupdate.sh retry {{INDEX}} > /dev/null 2>&1  每隔一个半小时重试INDEX的更新失败消息
+
+【发布】
+（1）kongsearch的发布
+  kongsearch基于svn自动发布到搜索服务器上的/opt/app/kongsearch目录下。
+（2) 分词词库kfz_dict.xdb的发布
+   分词词库kfz_dict.xdb通过发布机自动分发到搜索服务器以及所有php服务器上的/opt/app/scws/etc目录下。
+（3）生成分词词库kfz_dict.xdb：
+     scws-gen-dict -i kfz_dict.txt -o kfz_dict.xdb -c utf8     
+     说明：
+      文本词库kfz_dict.txt在kongsearch/etc/目录下，也是通过svn进行版本管理。
+      另外，发布机上需要安装scws软件，在发布机上根据kfz_dict.txt生成kfz_dict.xdb后，通过脚本分发。
+
+
+【KongSearch说明】
+(1) kongsearch目录结构以及说明
+    kongsearch
+    - bin 
+      buildindex.sh       创建索引
+      rebuildindex.sh     重建索引
+      gather.sh           采集数据
+      searchd.sh          搜索服务控制命令：启动、停止、重启
+      indexupdate.sh      索引更新
+      rotatequerylog.sh   轮转查询日志
+    - conf                
+      indexupdate.ini     索引更新服务配置文件
+      gather.dist.ini     数据采集配置文件模板和说明
+      product.ini         商品数据采集配置，用于重建索引时数据采集。
+      product_update.ini  商品数据采集配置，用于索引实时更新时数据采集。
+                          注意product.ini和product_update.ini唯一的区别就是数据库的配置不一样。
+                          重建索引时数据采集最好采用slave数据库，避免对数据库造成太大的压力。
+                          索引实时更新时数据采集最好采用master数据库，因为可能由于复制延迟造成slave读取不到数据。
+                          如果数据库没有主从之分，则使用一个配置文件即可。
+      INDEX.sql           用来创建searchd的sql文件。
+      author.blist        作者黑名单
+      press.blist         出版社黑名单
+      vcategory.map       虚拟分类映射表
+      redis-search.conf   搜索系统用的redis配置文件。
+      INDEX_local.ini     本地开发环境使用的配置文件。
+      INDEX_neibu.ini     内部环境使用的配置文件。
+    - etc                 这目录下都是sphinx相关的配置文件。
+      INDEX.distindex.ini 核心配置部分，用于配置INDEX的在集群的分布情况。*****
+      kfz_dict.txt        孔网分词词库(纯文本形式)，需要同scws-gen-dict生成kfz_dict.xdb
+      INDEX.src           索引数据源配置
+      INDEX.rt            实时索引配置
+      INDEX.idx           索引配置
+      INDEX.dist          分布式索引配置
+      common.idx          通用的索引配置
+      common.dist         通用的分布式索引配置
+      snippet.idx         用于摘要的索引配置
+      kfz_sphinx.conf     sphinx.conf文件
+      kfz_illegalwords.txt 非法词配置
+      kfz_stopwords_en.txt 英文停用词配置
+      kfz_stopwords_zh.txt 中文停用词配置
+      kfz_wordforms.txt    同义词配置
+      kfz_exceptions.txt   特殊词配置
+    - lib                 
+      indexupdateclient.php 索引更新服务客户端
+      searchclient.php      搜索服务客户端
+      unihan.php            繁体转简体映射表
+    - process               用来存放采集过程中用到的数据处理类
+      product.php           商品数据处理类
+      orders.php            订单数据处理类
+      ... ...    
+    - gather.php            数据采集程序
+    - gearworkctl.php       gearmand worker控制程序
+    - indexupdate.php       索引更新服务程序
+    - indextool.php         索引更新工具
+    - mquery.php            多语句查询测试工具
+
+(2) kongsearch使用说明
+    注意：下面操作都必须使用root用户，不能使用sudo。
+    - searchDB
+      searchDB用来存放采集的数据，目前采用的是MySQL来实现的，所有类型索引对应的数据表都存放到search库，search库的每一张数据表都必须包含两个字段：
+      (1) pid 字段：必须是自增的unsigned int字段，用来创建索引时从searchDB取数据。
+      (2) isdeleted字段：unsigned int，用来支持索引更新服务的。
+      索引的数据源里同样必须有这两个字段。
+     
+    - 采集数据
+      采集数据到searchdb，首先得清空searchDB数据：
+      mysql -u sphinx -h 192.168.1.137 -P 3306 -psphinx123321 search < /opt/app/kongsearch/conf/INDEX.sql
+      开始采集数据： sh gather.sh INDEX
+      
+    - 创建索引
+      buildindex.sh INDEX [--rotate]
+      如果是在搜索提供服务的情况下重建索引需要加--rotate选项。 
+      
+    - 运行搜索服务
+      searchd.sh {start|stop|restart} INDEX
+      启动或重启搜索服务是特别注意两种情况：*****
+      1. 实时索引字段或属性发生变化，即INDEX.rt文件里增加、减少、修改了字段，则需要删除实时索引文件：
+         比如，删除商品实时索引文件：
+         rm -f /data/index/product/product_rt.*  
+         
+      2. 由于目前搜索压力比较大，启动搜索服务时有时会出现：搜索服务起来来，服务器负载会慢慢飙到几百、上千。
+         这种情况下，需要先通过iptables来拦截一部分搜索请求，等搜索服务稳定后再放开。
+         比如：启动搜索服务时，我先放开zhugekongming yuebuqun服务器对搜索的请求，封掉来自其他服务器的请求：
+         iptables -A INPUT -s 192.168.1.83 -p TCP --dport 9307 -j ACCEPT
+         iptables -A INPUT -s 192.168.1.83 -p TCP --dport 9313 -j ACCEPT
+         iptables -A INPUT -s 192.168.1.239 -p TCP --dport 9307 -j ACCEPT
+         iptables -A INPUT -s 192.168.1.239 -p TCP --dport 9313 -j ACCEPT
+         iptables -A INPUT -p tcp --dport 9307 -j DROP  
+         iptables -A INPUT -p tcp --dport 9313 -j DROP  
+         
+         查看iptables： iptables -L
+         清除iptables： iptables -F
+         
+    - 运行索引更新服务
+      indexupdate.sh {start|stop|restart}
+      indexupdate.sh {redo|retry|start-rebuild|stop-rebuild} INDEX
+      说明：
+      redo: 对更新索引消息重做一遍
+      retry: 对失败消息重试一次
+      start-rebuild: 告诉索引更新服务现在开始重建索引了。
+      stop-rebuild: 告诉索引更新服务重建索引结束了。
+
+(3) 重建索引
+    建好一次索引之后，索引就是实时更新的，建议每个月建一次全量索引，提高性能。
+    重建索引的步骤如下，以重建商品索引为例：（以下操作都采用root用户）
+    （一）、清空searchdb的数据。
+         mysql -u sphinx -h 192.168.1.137 -P 3306 -psphinx123321 search < /opt/app/kongsearch/conf/product.sql
+    （二）、 启动索引更新服务（如果已经运行则无需启动）
+         sh indexupdate.sh start
+    （三） 发送rebuild-start消息：设置索引更新进行rebuild模式。 
+         sh indexupdate.sh start-rebuild  product
+    （四）开始采集数据，如果在多台服务器采集，则需要在各台服务器上启动：
+         sh gather.sh product
+    （五）确定各个节点数据都采集完后，开始重建索引
+         sh buildindex.sh product --rotate
+         如果修改了字段和属性则需要：停止searchd服务、删除实时索引文件，启动searchd服务。
+    （六）发送rebuild-stopped消息 
+         sh indexupdate.sh stop-rebuild product

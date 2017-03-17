@@ -1,0 +1,28 @@
+服务名：我的书房搜索
+
+1.mapping:
+curl -XPUT '$host:$port/shufang_v1' -d '{"mappings":{"study_search":{"properties":{"id":{"type":"long","index":"not_analyzed"},"uid":{"type":"integer","index":"not_analyzed"},"studyname":{"type":"string","index":"not_analyzed"},"nickname":{"type":"string","index":"not_analyzed"},"_studyname":{"type":"string","analyzer":"ik"},"_nickname":{"type":"string","analyzer":"ik"}}},"study_book_search":{"properties":{"id":{"type":"long","index":"not_analyzed"},"bookid":{"type":"integer","index":"not_analyzed"},"bookfrom":{"type":"integer","index":"not_analyzed"},"studyid":{"type":"integer","index":"not_analyzed"},"uid":{"type":"integer","index":"not_analyzed"},"bookname":{"type":"string","index":"not_analyzed"},"author":{"type":"string","index":"not_analyzed"},"isbn":{"type":"string","index":"not_analyzed"},"press":{"type":"string","index":"not_analyzed"},"pubdate":{"type":"string","index":"not_analyzed"},"image":{"type":"string","index":"not_analyzed"},"_bookname":{"type":"string","analyzer":"ik"},"_author":{"type":"string","analyzer":"ik"}}}}}'
+
+2.alias:
+curl -XPOST '$host:$port/_aliases' -d '{ "actions": [{ "add": {"alias": "shufang","index": "shufang_v1"}}]}'
+
+3.settings:
+curl -XPUT '$host:$port/shufang/_settings' -d '{"index" : {"translog" : {"flush_threshold_ops":"100000"}}}'
+curl -XPUT '$host:$port/shufang/_settings' -d '{"index" : {"number_of_replicas" : 0}}'
+
+4.deploy:
+kongsearch
+
+5.gather:
+sh bin/gatherES.sh studysearch
+sh bin/gatherES.sh studybooksearch
+
+6.restore setting:
+curl -XPUT '$host:$port/shufang/_settings' -d '{"index" : {"number_of_replicas" : 1}}'
+
+7.start indexupdate service:
+sh bin/indexupdateES.sh start shufang
+
+8.deploy:
+kfzsearch
+shufang

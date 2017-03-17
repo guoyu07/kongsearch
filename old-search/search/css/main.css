@@ -1,0 +1,65 @@
+/* CSS Document */
+
+*{ font-size:14px; line-height:200%; margin:0 auto; padding:0;}
+body{ text-align:center;}
+ul li{ list-style:none; padding-left:20px;line-height:200%;}
+a:link{ color:blue; text-decoration:none}
+a:hover{ color:#da0000; text-decoration:underline;}
+a:visited{ color:blue; text-decoration:none}
+img{ border:0;}
+td,div{}
+.font12{ font-size:12px;}
+/*ϵͳ*/
+#bsTop{ height:40px; font-size:16px; border-bottom:4px solid #666; padding-left:20px;background-color:#e7e7e7}
+#left{ width:18%; float:left; border-right:1px solid #666; background-color:#e7e7e7; height:530px;}
+#right{ width:80%; float:right;}
+#bsFooter{ height:20px;border-top:2px solid #666; background-color:#e7e7e7; text-align:center;}
+.menu1{ background-color:#afaeae; font-weight:bold; border-bottom:1px solid #666;border-top:1px solid #666;}
+.clearBoth{ clear:both; font-size:0; line-height:0;}
+#right table{ margin-top:30px;}
+
+#left ul li a{ color:000; text-decoration:none;}
+/* ǰ̨*/
+#topmenu{ height:30px; text-align:center; width:970px; background-color:#afaeae; border:1px solid #666; margin-top:6px;}
+#footer{ height:28px; line-height:28px;text-align:center; width:970px; background-color:#cfcfcf; border:1px solid #666; font-size:12px;}
+#copyright{ text-align:center; font-size:12px;}
+#header{ width:970px;}
+#topmenu ul{ margin-left:120px;}
+#topmenu ul li{ float:left; width:90px;}
+#topmenu .current{ background-color:#e7e7e7; border-left:1px solid #666;border-right:1px solid #666;}
+#content{ width:970px; height:500px;}
+#logo{ width:230px; height:60px; border:1px solid #666; font-size:22px; float:left;}
+#login{ float:right; margin-left:20px; line-height:60px;}
+.requiredField{ color:#666; font-size:12px;}
+/*信息提示*/
+.notesTextWarning{ display:block; border:1px solid #00a8ff; padding-left:20px;
+background:#e2f5ff url(http://img2.kongfz.com/member/icon_warning.gif) no-repeat 4px 4px;}
+.notesTextOk{ background:url(http://img2.kongfz.com/member/icon_ok.gif) no-repeat 4px 4px;  display:block;}
+.notesTextError{ display:block; border:1px solid #ff6600; padding-left:20px;background:#fff2e9 url(http://img2.kongfz.com/member/icon_error.gif) no-repeat 4px 4px;}
+
+/*前端小窗口css,不知道是否有小窗口CSS调用，如果没有，记得删除*/
+.foreWindow {
+	border: 1px solid #6e93b7;
+	padding: 1px;
+	background-color: #f5f8fc;
+	position: absolute;
+	width: 300px;
+	left: 291px;
+	top: 150px;
+	display: none;
+}
+
+.winTitlebar {
+	height: 15px;
+	background-color: #94bde6;
+	padding:4px;
+	font-size: 12px;
+	line-height:12px;
+	font-weight: bold;
+	color: #FFFFFF;
+}
+
+.winContent {
+	background-color: #f5f8fc;
+	padding:4px;
+}

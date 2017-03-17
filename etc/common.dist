@@ -1,0 +1,13 @@
+index <?=$INDEX?> {
+  type = distributed
+  <?=$LOCALS?>
+  <?=$AGENTS?>
+  agent_connect_timeout = 1000 # used with SetRetries()
+  agent_query_timeout = 5000   # more than SetMaxQueryTime()
+
+  #global_idf = /path/to/global.idf
+  #agent = host:9312
+  #agent_persistent = # only used for workers=threads
+  #agent_blackhole = 
+  #ha_strategy = random|nodeads|noerrors|roundrobin # used for agent mirrors 
+}

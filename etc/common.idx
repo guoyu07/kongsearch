@@ -1,0 +1,42 @@
+index <?=$INDEX?>_<?=$SHARD?> {
+  type = plain
+  <?=$SOURCES?>
+  path = <?=$INDEXDIR?>/<?=$INDEX?>/<?=$INDEX?>_<?=$SHARD?><?=$EOL?>
+  docinfo = extern
+  
+  # index word(term)
+  charset_type = utf-8
+  charset_table = 0..9, A..Z->a..z, a..z, \
+                  U+FF10..U+FF19->0..9, U+FF21..U+FF3A->a..z, U+FF41..U+FF5A->a..z, \
+                  U+410..U+42F->U+430..U+44F, U+430..U+44F, U+401->U+451, U+451, \
+                  U+C4->U+E4, U+D6->U+F6, U+DC->U+FC, U+DF, U+E4, U+F6, U+FC, \
+                  U+0391..U+03A1->U+03B1..U+03C1, U+03A3..U+03A9->U+03C3..U+03C9, U+03B1..U+03C1, U+03C3..U+03C9, \
+                  U+2E80..U+2EFF, U+2F00..U+2FDF, U+3040..U+309F, U+30A0..U+30FF, U+31F0..U+31FF, U+3105..U+312C, U+31A0..U+31BA, \
+                  U+3400..U+4DB5, U+4E00..U+9FBB, U+F900..U+FAFF, U+20000..U+2A6D6, U+2A700..U+2B73F, U+2B740..U+2B81F, U+2F800..U+2FA1F
+  ignore_chars = U+00AD
+  blend_chars = %, -, _, ., ', U+FF05->%, U+FF0D->-, U+FF3F->_, U+FF0E->., U+FF07->'
+  blend_mode = trim_none,trim_head, trim_tail, trim_both, skip_pure 
+  morphology = lemmatize_en
+  stopwords = <?=$BASEDIR?>/etc/kfz_stopwords_zh.txt <?=$BASEDIR?>/etc/kfz_stopwords_en.txt <?=$BASEDIR?>/etc/kfz_illegalwords.txt
+  stopword_step = 1
+  #stopwords_unstemmed = 1 #v2.1.1, bug
+  wordforms = <?=$BASEDIR?>/etc/kfz_wordforms.txt 
+  exceptions = <?=$BASEDIR?>/etc/kfz_exceptions.txt
+  min_word_len = 1
+  overshort_step = 1
+  index_exact_words = 0
+  dict = keywords
+  embedded_limit = 4096K  #v2.1.1
+  #html_strip = 1 
+  #html_remove_elements = style, script
+  
+  #ngram_len =  1
+  #ngram_chars = U+3000..U+2FA1F
+  
+  # rank for bm25a(),bm25f()
+  index_field_lengths = 0
+  
+  # performance
+  mlock = 1
+  preopen = 1
+}

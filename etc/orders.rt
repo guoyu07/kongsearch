@@ -1,0 +1,66 @@
+index <?=$INDEX?>_<?=$SHARD?>:<?=$PARENT?> {
+  type = rt
+  path = <?=$INDEXDIR?>/<?=$INDEX?>/<?=$INDEX?>_<?=$SHARD?><?=$EOL?>
+  rt_mem_limit = 10240M
+  
+  rt_field = _shopName
+  rt_field = _nickname
+  rt_field = _receiverName
+  rt_field = _itemIds
+  rt_field = _itemNames
+  rt_field = _phoneNum
+  rt_field = _mobile
+
+  rt_attr_uint = pid
+  rt_attr_uint = shopId
+  rt_attr_uint = bizType
+  rt_attr_uint = shopkeeperId
+  rt_attr_uint = userId
+  rt_attr_uint = orderStatus
+  rt_attr_uint = createdTime
+  rt_attr_uint = shippingId
+  rt_attr_uint = payId
+  rt_attr_uint = buyerReviewed
+  rt_attr_uint = sellerReviewed
+  rt_attr_uint = applyRefundStatus
+  rt_attr_uint = applyRefundTime
+  rt_attr_uint = isRemove
+  rt_attr_uint = isdeleted
+  rt_attr_uint = payStatus
+  rt_attr_uint = shippingStatus
+  rt_attr_uint = sellerConfirmedTime
+  rt_attr_uint = startPayTime
+  rt_attr_uint = payTime
+  rt_attr_uint = shippingTime
+  rt_attr_uint = receivedTime
+  rt_attr_uint = finishTime
+  rt_attr_uint = delay
+  
+  rt_attr_bigint = area
+  
+  rt_attr_string = shopName
+  rt_attr_string = nickname
+  rt_attr_string = orderMessage
+  rt_attr_string = date
+  rt_attr_string = month
+  rt_attr_string = shippingComCode
+  rt_attr_string = shippingCom
+  rt_attr_string = shippingTel
+  rt_attr_string = shipmentNum
+  rt_attr_string = moneyOrderNum
+  rt_attr_string = logisticFlowId
+  rt_attr_string = receiverName
+  rt_attr_string = phoneNum
+  rt_attr_string = mobile
+  rt_attr_string = email
+  rt_attr_string = address
+  rt_attr_string = zipCode
+  rt_attr_string = itemIds
+  rt_attr_string = itemNames
+  
+  rt_attr_float = goodsAmount
+  rt_attr_float = favorableMoney
+  rt_attr_float = shippingFee
+  rt_attr_float = allAmount
+  rt_attr_json = items
+}

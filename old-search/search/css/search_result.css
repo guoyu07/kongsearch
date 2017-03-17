@@ -1,0 +1,17 @@
+.search_btn_buy{ margin:-19px 5px 0 0; float:right; display:block; background:#fe872f; cursor:pointer; width:53px; height:21px; border:1px #df6408 solid; border-radius:2px; text-align:center; font-size:14px; line-height:21px; line-height:22px\0; color:#fff; background: -webkit-gradient(linear, 0 0, 0 100%, from(#ff872d), to(#ff6e01));	/*chrome*/ background: -moz-linear-gradient(center top , #ff872d, #ff6e01) repeat scroll 0 0 transparent;	/*���*/ FILTER:progid:DXImageTransform.Microsoft.gradient(startColorstr="#ff872d", endColorstr="#ff6e01");}
+.search_btn_buy:hover{ text-decoration:none; font-size:14px; color:#fff; background:#ff7001;background: -webkit-gradient(linear, 0 0, 0 100%, from(#fd6f01), to(#fe892a));	/*chrome*/ background: -moz-linear-gradient(center top , #fd6f01, #fe892a) repeat scroll 0 0 transparent;	/*���*/ FILTER:progid:DXImageTransform.Microsoft.gradient(startColorstr="#fd6f01", endColorstr="#fe892a");}
+.search_btn_buy:visited{ color:#fff;}
+.search_btn_sold{ cursor:auto; margin:-19px 5px 0 0; float:right; display:block; width:53px; height:21px; border:1px #9e9e9e solid; border-radius:2px; text-align:center; font-size:14px; line-height:21px; line-height:22px\0; color:#fff; background:#b0aeaf; background: -webkit-gradient(linear, 0 0, 0 100%, from(#b3b1b1), to(#a6a6a6));	/*chrome*/ background: -moz-linear-gradient(center top , #b3b1b1, #a6a6a6) repeat scroll 0 0 transparent;	/*���*/ FILTER:progid:DXImageTransform.Microsoft.gradient(startColorstr="#b3b1b1", endColorstr="#a6a6a6");}
+.search_btn_sold:hover{ cursor:auto; color:#fff; font-size:14px; text-decoration:none;}
+.search_btn_sold:visited{ color:#fff;}
+.search_btn_finished{ cursor:auto; margin:-19px 5px 0 0; float:right; display:block; width:53px; height:21px; border:1px #a0a0a0 solid; border-radius:2px; text-align:center; font-size:14px; line-height:21px; line-height:22px\0; color:#fff; background:#adacac; background: -webkit-gradient(linear, 0 0, 0 100%, from(#b3b1b1), to(#a6a6a6));	/*chrome*/ background: -moz-linear-gradient(center top , #b3b1b1, #a6a6a6) repeat scroll 0 0 transparent;	/*���*/ FILTER:progid:DXImageTransform.Microsoft.gradient(startColorstr="#b3b1b1", endColorstr="#a6a6a6");}
+.search_btn_finished:hover{ cursor:auto; color:#fff; font-size:14px; text-decoration:none;}
+.search_btn_finished:visited{ color:#fff;}
+
+.search_btn_buy_list{ margin:0 10px 0 0; _margin:0 5px 0 0;}
+.search_btn_sold_list{ margin:0 10px 0 0; _margin:0 5px 0 0;}
+.search_btn_finished_list{ margin:0 10px 0 0; _margin:0 5px 0 0;}
+
+.search_btn_blue{ cursor:pointer; float:left; overflow:hidden; margin:0 3px 0 -1px; padding:0; width:54px; height:20px; line-height:20px; line-height:22px\9; font-size:14px; color:#fff; border:1px #035583 solid; border-radius:2px; text-align:center; background:#005e93; background: -webkit-gradient(linear, 0 0, 0 100%, from(#00649b), to(#005788));	/*chrome*/ background: -moz-linear-gradient(center top , #00649b, #005788) repeat scroll 0 0 transparent;	/*���*/ FILTER:progid:DXImageTransform.Microsoft.gradient(startColorstr="#00649b", endColorstr="#005788");}
+.search_btn_blue:hover{ color:#fff; font-size:14px; text-decoration:none; cursor:pointer; background:#005e93; background: -webkit-gradient(linear, 0 0, 0 100%, from(#005788), to(#00649b));	/*chrome*/ background: -moz-linear-gradient(center top , #005788, #00649b) repeat scroll 0 0 transparent;	/*���*/ FILTER:progid:DXImageTransform.Microsoft.gradient(startColorstr="#005788", endColorstr="#00649b");}
+
